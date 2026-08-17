@@ -1,0 +1,73 @@
+<section class="flex flex-col gap-6">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">Gastos</h1>
+      <p class="mt-1 text-sm text-ncasa-muted">Todo lo que habéis compartido en casa.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a routerLink="/app/tickets">
+        <app-button variant="secondary" icon="scan-line">Escanear ticket</app-button>
+      </a>
+      <a routerLink="/app/expenses/new">
+        <app-button variant="primary" icon="plus">Añadir gasto</app-button>
+      </a>
+    </div>
+  </header>
+
+  <!-- Summary -->
+  <app-card tone="forest">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-ncasa-cream/70">Total {{ activeFilter === 'todos' ? 'del mes' : activeFilter }}</p>
+        <p class="mt-1 text-3xl font-semibold text-ncasa-cream">{{ totalFiltered | currency: 'EUR' }}</p>
+      </div>
+      <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ncasa-cream/15 text-ncasa-cream">
+        <lucide-icon name="wallet" [size]="24" aria-hidden="true"></lucide-icon>
+      </span>
+    </div>
+  </app-card>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-2">
+    <app-filter-chip
+      *ngFor="let f of filters"
+      [active]="activeFilter === f.key"
+      (click)="setFilter(f.key)"
+    >
+      {{ f.label }}
+    </app-filter-chip>
+  </div>
+
+  <!-- List -->
+  <app-card *ngIf="filtered.length; else empty" padding="none">
+    <ul class="divide-y divide-ncasa-border">
+      <li *ngFor="let e of filtered; trackBy: trackExpense" class="flex items-center gap-3 px-5 py-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest">
+          <lucide-icon [name]="categoryIcon(e.category)" [size]="20" aria-hidden="true"></lucide-icon>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.concept }}</p>
+          <p class="text-xs text-ncasa-muted">
+            {{ categoryLabel(e.category) }} · Pagó {{ e.paidByName }} · {{ e.date }}
+          </p>
+        </div>
+        <div class="flex flex-col items-end gap-1.5">
+          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | currency: 'EUR' }}</span>
+          <app-badge [tone]="statusTone(e.status)">{{ e.status }}</app-badge>
+        </div>
+      </li>
+    </ul>
+  </app-card>
+
+  <ng-template #empty>
+    <app-empty-state
+      icon="inbox"
+      title="Nada por aquí"
+      description="No hay gastos con este filtro. Prueba con otro o añade uno nuevo."
+    >
+      <a routerLink="/app/expenses/new">
+        <app-button variant="primary" icon="plus">Añadir gasto</app-button>
+      </a>
+    </app-empty-state>
+  </ng-template>
+</section>

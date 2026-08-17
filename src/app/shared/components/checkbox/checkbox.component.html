@@ -1,0 +1,19 @@
+<label [attr.for]="checkboxId" class="inline-flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-ncasa-charcoal">
+  <span class="relative inline-flex h-5 w-5 shrink-0 items-center justify-center">
+    <input
+      type="checkbox"
+      [id]="checkboxId"
+      [checked]="checked"
+      [disabled]="disabled"
+      (change)="onChange($event)"
+      class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-ncasa-border bg-ncasa-surface transition-colors checked:border-ncasa-forest checked:bg-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest focus-visible:ring-offset-2 focus-visible:ring-offset-ncasa-cream disabled:opacity-50"
+    />
+    <lucide-icon
+      name="check"
+      [size]="14"
+      class="pointer-events-none absolute text-ncasa-cream opacity-0 peer-checked:opacity-100"
+      aria-hidden="true"
+    ></lucide-icon>
+  </span>
+  <span *ngIf="label">{{ label }}</span>
+</label>
