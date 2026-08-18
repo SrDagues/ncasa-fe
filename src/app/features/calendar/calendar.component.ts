@@ -4,6 +4,8 @@ import { CardComponent } from '../../shared/components/card/card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { IconButtonComponent } from '../../shared/components/icon-button/icon-button.component';
 import { EVENTS, EVENT_CATEGORIES } from '../../core/demo-content';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../core/i18n/localized-format.pipe';
 
 @Component({
   selector: 'app-calendar',
@@ -13,6 +15,8 @@ import { EVENTS, EVENT_CATEGORIES } from '../../core/demo-content';
     CardComponent,
     ButtonComponent,
     IconButtonComponent,
+    TranslatePipe,
+    LocalizedDatePipe,
   ],
   templateUrl: './calendar.component.html',
 })
@@ -53,10 +57,10 @@ export class CalendarComponent {
   }
 
   categoryLabel(key: string): string {
-    return this.categories.find((c) => c.key === key)?.label ?? '';
+    return this.categories.find((c) => c.key === key)?.labelKey ?? '';
   }
 
-  trackEvent(_: number, e: any): string {
+  trackEvent(_: number, e: { id: string }): string {
     return e.id;
   }
 }

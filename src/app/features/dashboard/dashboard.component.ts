@@ -7,6 +7,8 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card.c
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../core/i18n/localized-format.pipe';
 import {
   CATEGORIES,
   EVENTS,
@@ -28,6 +30,9 @@ import {
     BadgeComponent,
     AvatarComponent,
     ButtonComponent,
+    TranslatePipe,
+    LocalizedCurrencyPipe,
+    LocalizedDatePipe,
   ],
   templateUrl: './dashboard.component.html',
 })
@@ -44,7 +49,7 @@ export class DashboardComponent {
   }
 
   get pendingToSplit(): number {
-    return EXPENSES.filter((e) => e.status === 'pendiente').reduce((s, e) => s + e.amount, 0);
+    return EXPENSES.filter((e) => e.status === 'pending').reduce((s, e) => s + e.amount, 0);
   }
 
   categoryIcon(key: string): string {
@@ -52,7 +57,7 @@ export class DashboardComponent {
   }
 
   categoryLabel(key: string): string {
-    return CATEGORIES.find((c) => c.key === key)?.label ?? 'Otros';
+    return CATEGORIES.find((c) => c.key === key)?.labelKey ?? 'common.other';
   }
 
   eventDot(key: string): string {
@@ -60,8 +65,8 @@ export class DashboardComponent {
   }
 
   statusTone(status: string): 'positive' | 'warning' | 'neutral' {
-    if (status === 'liquidado') return 'positive';
-    if (status === 'pendiente') return 'warning';
+    if (status === 'settled') return 'positive';
+    if (status === 'pending') return 'warning';
     return 'neutral';
   }
 
@@ -69,7 +74,7 @@ export class DashboardComponent {
     return Math.abs(value);
   }
 
-  trackEvent(_: number, event: any): string {
+  trackEvent(_: number, event: { id: string }): string {
     return event.id;
   }
 }

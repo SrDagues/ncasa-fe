@@ -5,7 +5,7 @@
     </span>
     <div>
       <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ household }}</h1>
-      <p class="mt-1 text-sm text-ncasa-muted">{{ members.length }} miembros · {{ invites.length }} invitación pendiente</p>
+      <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.summary' | translate: { members: members.length, invites: invites.length } }}</p>
     </div>
   </header>
 
@@ -13,7 +13,7 @@
     <!-- Members -->
     <app-card padding="none" class="lg:col-span-3">
       <div class="border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">Miembros</h2>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2>
       </div>
       <ul class="divide-y divide-ncasa-border">
         <li *ngFor="let m of members; trackBy: trackMember" class="flex items-center gap-3 px-5 py-4">
@@ -21,7 +21,7 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.name }}</p>
-              <app-badge [tone]="m.role === 'admin' ? 'forest' : 'neutral'">{{ m.role }}</app-badge>
+              <app-badge [tone]="m.role === 'admin' ? 'forest' : 'neutral'">{{ ('household.roles.' + m.role) | translate }}</app-badge>
             </div>
             <p class="truncate text-xs text-ncasa-muted">{{ m.email }}</p>
           </div>
@@ -29,23 +29,23 @@
             class="text-sm font-semibold tabular"
             [ngClass]="m.balance >= 0 ? 'text-ncasa-forest' : 'text-ncasa-coral-dark'"
           >
-            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | currency: 'EUR' }}
+            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | localizedCurrency }}
           </span>
         </li>
       </ul>
 
       <!-- Pending invites -->
       <div *ngIf="invites.length" class="border-t border-ncasa-border px-5 py-4">
-        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-ncasa-muted">Invitaciones pendientes</p>
+        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-ncasa-muted">{{ 'household.pendingInvites' | translate }}</p>
         <div *ngFor="let inv of invites" class="flex items-center gap-3 py-1.5">
           <span class="flex h-9 w-9 items-center justify-center rounded-full bg-ncasa-sage-soft text-ncasa-forest">
             <lucide-icon name="mail" [size]="16" aria-hidden="true"></lucide-icon>
           </span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ inv.email }}</p>
-            <p class="text-xs text-ncasa-muted">{{ inv.sentAgo }} · {{ inv.role }}</p>
+            <p class="text-xs text-ncasa-muted">{{ inv.sentAgoKey | translate }} · {{ ('household.roles.' + inv.role) | translate }}</p>
           </div>
-          <app-badge tone="warning" icon="clock">Pendiente</app-badge>
+          <app-badge tone="warning" icon="clock">{{ 'common.pending' | translate }}</app-badge>
         </div>
       </div>
     </app-card>
@@ -53,23 +53,23 @@
     <div class="flex flex-col gap-6 lg:col-span-2">
       <!-- Invite -->
       <app-card>
-        <h2 class="text-base font-semibold text-ncasa-forest">Invitar a alguien</h2>
-        <p class="mt-1 text-sm text-ncasa-muted">Le enviaremos un enlace para unirse al hogar.</p>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.invite' | translate }}</h2>
+        <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.inviteDescription' | translate }}</p>
         <form (submit)="onInvite($event)" class="mt-4 flex flex-col gap-4">
-          <app-form-field label="Correo electrónico" fieldId="invite-email">
-            <app-input id="invite-email" type="email" placeholder="persona@correo.com" icon="mail" [(value)]="inviteEmail" />
+          <app-form-field [label]="'common.email' | translate" fieldId="invite-email">
+            <app-input id="invite-email" type="email" [placeholder]="'household.emailPlaceholder' | translate" icon="mail" [(value)]="inviteEmail" />
           </app-form-field>
-          <app-form-field label="Rol" fieldId="invite-role">
-            <app-select id="invite-role" [options]="roleOptions" [value]="inviteRole"></app-select>
+          <app-form-field [label]="'household.role' | translate" fieldId="invite-role">
+            <app-select id="invite-role" [options]="roleOptions()" [value]="inviteRole"></app-select>
           </app-form-field>
-          <app-button type="submit" variant="primary" icon="user-plus" [fullWidth]="true">Enviar invitación</app-button>
+          <app-button type="submit" variant="primary" icon="user-plus" [fullWidth]="true">{{ 'household.sendInvite' | translate }}</app-button>
         </form>
       </app-card>
 
       <!-- Settle up -->
       <app-card tone="sage">
-        <h2 class="text-base font-semibold text-ncasa-forest">Saldar cuentas</h2>
-        <p class="mt-1 text-sm text-ncasa-forest/70">Forma más rápida de quedar en paz.</p>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.settle' | translate }}</h2>
+        <p class="mt-1 text-sm text-ncasa-forest/70">{{ 'household.settleDescription' | translate }}</p>
         <ul class="mt-4 flex flex-col gap-2">
           <li
             *ngFor="let s of settlements"
@@ -78,7 +78,7 @@
             <span class="font-medium text-ncasa-charcoal">{{ s.from.name }}</span>
             <lucide-icon name="arrow-right" [size]="16" class="text-ncasa-muted" aria-hidden="true"></lucide-icon>
             <span class="font-medium text-ncasa-charcoal">{{ s.to.name }}</span>
-            <span class="ml-auto font-semibold tabular text-ncasa-forest">{{ s.amount | currency: 'EUR' }}</span>
+            <span class="ml-auto font-semibold tabular text-ncasa-forest">{{ s.amount | localizedCurrency }}</span>
           </li>
         </ul>
       </app-card>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -10,6 +10,7 @@ import { SelectComponent } from '../../../shared/components/select/select.compon
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { CATEGORIES, MEMBERS } from '../../../core/demo-content';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-expense-form',
@@ -25,10 +26,13 @@ import { CATEGORIES, MEMBERS } from '../../../core/demo-content';
     SelectComponent,
     CheckboxComponent,
     AlertComponent,
+    TranslatePipe,
   ],
   templateUrl: './expense-form.component.html',
 })
 export class ExpenseFormComponent {
+  private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   readonly isTicketMode: boolean;
   readonly members = MEMBERS;
 
@@ -40,10 +44,13 @@ export class ExpenseFormComponent {
   splitType = 'igual';
   includedIds = new Set<string>(MEMBERS.map((m) => m.id));
 
-  readonly categoryOptions = CATEGORIES.map((c) => ({
-    value: c.key,
-    label: c.label,
-  }));
+  readonly categoryOptions = computed(() => {
+    this.translate.currentLang();
+    return CATEGORIES.map((c) => ({
+      value: c.key,
+      label: this.translate.instant(c.labelKey),
+    }));
+  });
 
   readonly memberOptions = MEMBERS.map((m) => ({
     value: m.id,
@@ -51,13 +58,13 @@ export class ExpenseFormComponent {
   }));
 
   readonly splitOptions = [
-    { key: 'igual', label: 'A partes iguales' },
-    { key: 'porcentaje', label: 'Por porcentaje' },
-    { key: 'partes', label: 'Por partes' },
-    { key: 'importe', label: 'Importe exacto' },
+    { key: 'igual', labelKey: 'expenses.form.splitOptions.equal' },
+    { key: 'porcentaje', labelKey: 'expenses.form.splitOptions.percentage' },
+    { key: 'partes', labelKey: 'expenses.form.splitOptions.shares' },
+    { key: 'importe', labelKey: 'expenses.form.splitOptions.exact' },
   ];
 
-  constructor(private router: Router) {
+  constructor() {
     this.isTicketMode = this.router.url.includes('tickets');
     if (this.isTicketMode) {
       this.concept = 'Compra supermercado';

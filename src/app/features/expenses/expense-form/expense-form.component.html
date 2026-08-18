@@ -3,16 +3,16 @@
     <a
       routerLink="/app/expenses"
       class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ncasa-border bg-ncasa-surface text-ncasa-forest transition-colors hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"
-      aria-label="Volver a gastos"
+      [attr.aria-label]="'expenses.form.back' | translate"
     >
       <lucide-icon name="arrow-left" [size]="20" aria-hidden="true"></lucide-icon>
     </a>
     <div>
       <h1 class="text-2xl font-semibold text-ncasa-forest">
-        {{ isTicketMode ? 'Escanear ticket' : 'Añadir gasto' }}
+        {{ (isTicketMode ? 'expenses.form.ticketTitle' : 'expenses.form.expenseTitle') | translate }}
       </h1>
       <p class="text-sm text-ncasa-muted">
-        {{ isTicketMode ? 'Revisa los datos detectados y reparte.' : 'Registra un gasto compartido del hogar.' }}
+        {{ (isTicketMode ? 'expenses.form.ticketSubtitle' : 'expenses.form.expenseSubtitle') | translate }}
       </p>
     </div>
   </header>
@@ -24,40 +24,40 @@
         <lucide-icon name="camera" [size]="26" aria-hidden="true"></lucide-icon>
       </span>
       <div>
-        <p class="text-sm font-semibold text-ncasa-forest">Sube una foto del ticket</p>
-        <p class="mt-0.5 text-xs text-ncasa-muted">JPG o PNG, hasta 10 MB</p>
+        <p class="text-sm font-semibold text-ncasa-forest">{{ 'expenses.form.uploadTitle' | translate }}</p>
+        <p class="mt-0.5 text-xs text-ncasa-muted">{{ 'expenses.form.uploadHint' | translate }}</p>
       </div>
-      <app-button variant="secondary" icon="upload">Elegir archivo</app-button>
+      <app-button variant="secondary" icon="upload">{{ 'expenses.form.chooseFile' | translate }}</app-button>
     </div>
   </app-card>
 
-  <app-alert *ngIf="isTicketMode" tone="success" title="Datos detectados">
-    Hemos rellenado el concepto y el importe automáticamente. Revísalos antes de guardar.
+  <app-alert *ngIf="isTicketMode" tone="success" [title]="'expenses.form.detectedTitle' | translate">
+    {{ 'expenses.form.detectedDescription' | translate }}
   </app-alert>
 
   <form (submit)="onSubmit($event)" class="flex flex-col gap-6">
     <app-card>
       <div class="flex flex-col gap-5">
-        <app-form-field label="Concepto" fieldId="concept">
-          <app-input id="concept" placeholder="Ej. Compra semanal" icon="receipt-text" [(value)]="concept" />
+        <app-form-field [label]="'expenses.form.concept' | translate" fieldId="concept">
+          <app-input id="concept" [placeholder]="'expenses.form.conceptPlaceholder' | translate" icon="receipt-text" [(value)]="concept" />
         </app-form-field>
 
         <div class="grid gap-5 sm:grid-cols-2">
-          <app-form-field label="Importe" fieldId="amount">
+          <app-form-field [label]="'expenses.form.amount' | translate" fieldId="amount">
             <app-input id="amount" type="number" placeholder="0,00" prefix="€" [(value)]="amount" />
           </app-form-field>
 
-          <app-form-field label="Fecha" fieldId="date">
+          <app-form-field [label]="'expenses.form.date' | translate" fieldId="date">
             <app-input id="date" type="date" [(value)]="date" />
           </app-form-field>
         </div>
 
         <div class="grid gap-5 sm:grid-cols-2">
-          <app-form-field label="Categoría" fieldId="category">
-            <app-select id="category" [options]="categoryOptions" [value]="category"></app-select>
+          <app-form-field [label]="'expenses.form.category' | translate" fieldId="category">
+            <app-select id="category" [options]="categoryOptions()" [value]="category"></app-select>
           </app-form-field>
 
-          <app-form-field label="Pagado por" fieldId="paidBy">
+          <app-form-field [label]="'expenses.form.paidBy' | translate" fieldId="paidBy">
             <app-select id="paidBy" [options]="memberOptions" [value]="paidBy"></app-select>
           </app-form-field>
         </div>
@@ -66,7 +66,7 @@
 
     <!-- Split -->
     <app-card>
-      <h2 class="text-base font-semibold text-ncasa-forest">Cómo se reparte</h2>
+      <h2 class="text-base font-semibold text-ncasa-forest">{{ 'expenses.form.split' | translate }}</h2>
       <div class="mt-4 grid gap-2 sm:grid-cols-2">
         <label
           *ngFor="let s of splitOptions"
@@ -82,12 +82,12 @@
           >
             <span *ngIf="splitType === s.key" class="h-2 w-2 rounded-full bg-ncasa-forest"></span>
           </span>
-          {{ s.label }}
+          {{ s.labelKey | translate }}
         </label>
       </div>
 
       <div class="mt-5 border-t border-ncasa-border pt-4">
-        <p class="mb-2 text-sm font-medium text-ncasa-charcoal">Entre quién</p>
+        <p class="mb-2 text-sm font-medium text-ncasa-charcoal">{{ 'expenses.form.between' | translate }}</p>
         <div class="flex flex-col gap-1">
           <app-checkbox
             *ngFor="let m of members"
@@ -101,9 +101,9 @@
 
     <div class="flex items-center justify-end gap-3">
       <a routerLink="/app/expenses">
-        <app-button variant="tertiary">Cancelar</app-button>
+        <app-button variant="tertiary">{{ 'common.cancel' | translate }}</app-button>
       </a>
-      <app-button type="submit" variant="primary" icon="check">Guardar gasto</app-button>
+      <app-button type="submit" variant="primary" icon="check">{{ 'expenses.form.save' | translate }}</app-button>
     </div>
   </form>
 </section>
