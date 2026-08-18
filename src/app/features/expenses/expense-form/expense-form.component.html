@@ -1,0 +1,109 @@
+<section class="mx-auto flex max-w-2xl flex-col gap-6">
+  <header class="flex items-center gap-3">
+    <a
+      routerLink="/app/expenses"
+      class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ncasa-border bg-ncasa-surface text-ncasa-forest transition-colors hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"
+      aria-label="Volver a gastos"
+    >
+      <lucide-icon name="arrow-left" [size]="20" aria-hidden="true"></lucide-icon>
+    </a>
+    <div>
+      <h1 class="text-2xl font-semibold text-ncasa-forest">
+        {{ isTicketMode ? 'Escanear ticket' : 'Añadir gasto' }}
+      </h1>
+      <p class="text-sm text-ncasa-muted">
+        {{ isTicketMode ? 'Revisa los datos detectados y reparte.' : 'Registra un gasto compartido del hogar.' }}
+      </p>
+    </div>
+  </header>
+
+  <!-- Ticket scan card -->
+  <app-card *ngIf="isTicketMode" tone="sage">
+    <div class="flex flex-col items-center gap-3 py-4 text-center">
+      <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-ncasa-forest text-ncasa-cream">
+        <lucide-icon name="camera" [size]="26" aria-hidden="true"></lucide-icon>
+      </span>
+      <div>
+        <p class="text-sm font-semibold text-ncasa-forest">Sube una foto del ticket</p>
+        <p class="mt-0.5 text-xs text-ncasa-muted">JPG o PNG, hasta 10 MB</p>
+      </div>
+      <app-button variant="secondary" icon="upload">Elegir archivo</app-button>
+    </div>
+  </app-card>
+
+  <app-alert *ngIf="isTicketMode" tone="success" title="Datos detectados">
+    Hemos rellenado el concepto y el importe automáticamente. Revísalos antes de guardar.
+  </app-alert>
+
+  <form (submit)="onSubmit($event)" class="flex flex-col gap-6">
+    <app-card>
+      <div class="flex flex-col gap-5">
+        <app-form-field label="Concepto" fieldId="concept">
+          <app-input id="concept" placeholder="Ej. Compra semanal" icon="receipt-text" [(value)]="concept" />
+        </app-form-field>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <app-form-field label="Importe" fieldId="amount">
+            <app-input id="amount" type="number" placeholder="0,00" prefix="€" [(value)]="amount" />
+          </app-form-field>
+
+          <app-form-field label="Fecha" fieldId="date">
+            <app-input id="date" type="date" [(value)]="date" />
+          </app-form-field>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <app-form-field label="Categoría" fieldId="category">
+            <app-select id="category" [options]="categoryOptions" [value]="category"></app-select>
+          </app-form-field>
+
+          <app-form-field label="Pagado por" fieldId="paidBy">
+            <app-select id="paidBy" [options]="memberOptions" [value]="paidBy"></app-select>
+          </app-form-field>
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Split -->
+    <app-card>
+      <h2 class="text-base font-semibold text-ncasa-forest">Cómo se reparte</h2>
+      <div class="mt-4 grid gap-2 sm:grid-cols-2">
+        <label
+          *ngFor="let s of splitOptions"
+          class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+          [ngClass]="splitType === s.key
+            ? 'border-ncasa-forest bg-ncasa-sage-soft text-ncasa-forest'
+            : 'border-ncasa-border bg-ncasa-surface text-ncasa-charcoal hover:border-ncasa-forest/40'"
+        >
+          <input type="radio" name="split" class="sr-only" [checked]="splitType === s.key" (change)="splitType = s.key" />
+          <span
+            class="flex h-4 w-4 items-center justify-center rounded-full border"
+            [ngClass]="splitType === s.key ? 'border-ncasa-forest' : 'border-ncasa-border'"
+          >
+            <span *ngIf="splitType === s.key" class="h-2 w-2 rounded-full bg-ncasa-forest"></span>
+          </span>
+          {{ s.label }}
+        </label>
+      </div>
+
+      <div class="mt-5 border-t border-ncasa-border pt-4">
+        <p class="mb-2 text-sm font-medium text-ncasa-charcoal">Entre quién</p>
+        <div class="flex flex-col gap-1">
+          <app-checkbox
+            *ngFor="let m of members"
+            [checked]="isIncluded(m.id)"
+            [label]="m.name"
+            (checkedChange)="toggleMember(m.id, $event)"
+          ></app-checkbox>
+        </div>
+      </div>
+    </app-card>
+
+    <div class="flex items-center justify-end gap-3">
+      <a routerLink="/app/expenses">
+        <app-button variant="tertiary">Cancelar</app-button>
+      </a>
+      <app-button type="submit" variant="primary" icon="check">Guardar gasto</app-button>
+    </div>
+  </form>
+</section>

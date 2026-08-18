@@ -1,0 +1,11 @@
+<div class="flex items-center">
+  <span *ngFor="let m of visible; let i = index" class="-ml-2 first:ml-0 rounded-full ring-2 ring-ncasa-surface">
+    <app-avatar [initials]="m.initials" [name]="m.name" [color]="m.color" [size]="size"></app-avatar>
+  </span>
+  <span
+    *ngIf="overflow > 0"
+    class="-ml-2 inline-flex items-center justify-center rounded-full bg-ncasa-charcoal/10 text-xs font-semibold text-ncasa-charcoal ring-2 ring-ncasa-surface"
+    [ngClass]="size === 'sm' ? 'h-7 w-7' : 'h-9 w-9'"
+    >+{{ overflow }}</span
+  >
+</div>

@@ -1,0 +1,4 @@
+<button type="button" [class]="classes" [attr.aria-pressed]="active">
+  <lucide-icon *ngIf="icon" [name]="icon" [size]="15" aria-hidden="true"></lucide-icon>
+  <ng-content></ng-content>
+</button>

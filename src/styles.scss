@@ -1,1 +1,136 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ncasa-forest: #123c36;
+  --ncasa-cream: #f7f1e7;
+  --ncasa-coral: #f26b5b;
+  --ncasa-coral-dark: #e05543;
+  --ncasa-sage: #9db9a7;
+  --ncasa-sage-soft: #e3ece5;
+  --ncasa-charcoal: #202624;
+  --ncasa-surface: #fffcf7;
+  --ncasa-border: #dcd8cf;
+  --ncasa-muted: #66706c;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; min-height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--ncasa-cream);
+  color: var(--ncasa-charcoal);
+  font-family: Geist, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ncasa-forest); outline-offset: 3px; }
+
+.auth-form { width: 100%; max-width: 28rem; }
+.auth-form__header { margin-bottom: 2rem; }
+.auth-form__title {
+  margin: 0;
+  color: var(--ncasa-forest);
+  font-size: clamp(1.85rem, 4vw, 2.15rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.auth-form__subtitle {
+  margin: 0.6rem 0 0;
+  color: color-mix(in srgb, var(--ncasa-charcoal) 62%, transparent);
+  line-height: 1.55;
+}
+.auth-form form { display: flex; flex-direction: column; gap: 1.2rem; }
+.form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-field label { color: var(--ncasa-charcoal); font-size: 0.875rem; font-weight: 600; }
+.form-field__hint { margin: 0; color: var(--ncasa-muted); font-size: 0.75rem; }
+.input-shell { position: relative; }
+.input-shell > svg:first-child {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--ncasa-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.input-shell input {
+  width: 100%;
+  height: 2.9rem;
+  padding: 0 2.8rem 0 2.75rem;
+  border: 1px solid var(--ncasa-border);
+  border-radius: 0.75rem;
+  background: var(--ncasa-surface);
+  color: var(--ncasa-charcoal);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input-shell input::placeholder { color: color-mix(in srgb, var(--ncasa-muted) 72%, transparent); }
+.input-shell input:focus {
+  border-color: var(--ncasa-forest);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncasa-forest) 13%, transparent);
+  outline: none;
+}
+.input-shell__action {
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ncasa-muted);
+  cursor: pointer;
+  place-items: center;
+  transform: translateY(-50%);
+}
+.input-shell__action:hover { background: var(--ncasa-sage-soft); color: var(--ncasa-forest); }
+.input-shell__action svg { width: 1.1rem; height: 1.1rem; }
+.form-options { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.checkbox {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  color: var(--ncasa-charcoal);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.checkbox input { width: 1rem; height: 1rem; margin: 0.1rem 0 0; accent-color: var(--ncasa-forest); }
+.text-link {
+  color: var(--ncasa-forest);
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.text-link:hover { color: var(--ncasa-coral-dark); text-decoration: underline; text-underline-offset: 0.2rem; }
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.primary-button { border: 1px solid var(--ncasa-coral); background: var(--ncasa-coral); color: var(--ncasa-surface); }
+.primary-button:hover:not(:disabled) { border-color: var(--ncasa-coral-dark); background: var(--ncasa-coral-dark); }
+.primary-button:active:not(:disabled) { transform: translateY(1px); }
+.primary-button:disabled { cursor: not-allowed; opacity: 0.5; }
+.auth-form__footer {
+  margin: 2rem 0 0;
+  color: color-mix(in srgb, var(--ncasa-charcoal) 62%, transparent);
+  font-size: 0.875rem;
+  text-align: center;
+}
+@media (max-width: 480px) { .form-options { align-items: flex-start; flex-direction: column; } }
