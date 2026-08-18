@@ -9,6 +9,8 @@ import {
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
 import { AuthenticatedSession } from '../domain/auth.models';
 import { Register } from './register';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import es from '../../../../../public/i18n/es.json';
 
 describe('Register page', () => {
   const session: AuthenticatedSession = {
@@ -25,9 +27,11 @@ describe('Register page', () => {
       imports: [Register],
       providers: [
         provideRouter([]),
+        provideTranslateService({ fallbackLang: 'es', lang: 'es' }),
         { provide: RegisterUseCase, useValue: { execute } },
       ],
     });
+    TestBed.inject(TranslateService).setTranslation('es', es);
   });
 
   it('should not submit an invalid registration', () => {

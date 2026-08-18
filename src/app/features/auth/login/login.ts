@@ -4,10 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { InvalidCredentialsError, NetworkUnavailableError } from '../application/auth.errors';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './login.html',
 })
 export class Login {
@@ -34,17 +35,17 @@ export class Login {
       finalize(() => this.pending.set(false)),
     ).subscribe({
       next: () => void this.router.navigateByUrl('/app/dashboard'),
-      error: (error: unknown) => this.errorMessage.set(loginErrorMessage(error)),
+      error: (error: unknown) => this.errorMessage.set(loginErrorKey(error)),
     });
   }
 }
 
-function loginErrorMessage(error: unknown): string {
+function loginErrorKey(error: unknown): string {
   if (error instanceof InvalidCredentialsError) {
-    return 'El correo o la contraseña no son correctos.';
+    return 'auth.errors.invalidCredentials';
   }
   if (error instanceof NetworkUnavailableError) {
-    return 'No podemos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.';
+    return 'auth.errors.network';
   }
-  return 'No hemos podido iniciar sesión. Inténtalo de nuevo.';
+  return 'auth.errors.loginUnknown';
 }

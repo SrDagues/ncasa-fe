@@ -2,6 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
+import { Meta } from '@angular/platform-browser';
 import {
   DEFAULT_LANGUAGE,
   isSupportedLanguage,
@@ -15,6 +16,7 @@ const STORAGE_KEY = 'ncasa.language';
 export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
+  private readonly meta = inject(Meta);
   private readonly currentLanguageState = signal<SupportedLanguage>(DEFAULT_LANGUAGE);
 
   readonly currentLanguage = this.currentLanguageState.asReadonly();
@@ -36,6 +38,7 @@ export class LanguageService {
     await firstValueFrom(this.translate.use(language));
     this.currentLanguageState.set(language);
     this.document.documentElement.lang = language;
+    this.meta.updateTag({ name: 'description', content: this.translate.instant('metadata.description') });
 
     if (persist) {
       this.document.defaultView?.localStorage.setItem(STORAGE_KEY, language);

@@ -15,7 +15,7 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then(
             (component) => component.DashboardComponent,
           ),
-        title: 'Inicio · ncasa',
+        data: { titleKey: 'metadata.dashboard' },
       },
       {
         path: 'expenses',
@@ -23,7 +23,7 @@ export const routes: Routes = [
           import('./features/expenses/expense-list/expense-list.component').then(
             (component) => component.ExpenseListComponent,
           ),
-        title: 'Gastos · ncasa',
+        data: { titleKey: 'metadata.expenses' },
       },
       {
         path: 'expenses/new',
@@ -31,7 +31,7 @@ export const routes: Routes = [
           import('./features/expenses/expense-form/expense-form.component').then(
             (component) => component.ExpenseFormComponent,
           ),
-        title: 'Añadir gasto · ncasa',
+        data: { titleKey: 'metadata.newExpense' },
       },
       {
         path: 'tickets',
@@ -39,7 +39,7 @@ export const routes: Routes = [
           import('./features/expenses/expense-form/expense-form.component').then(
             (component) => component.ExpenseFormComponent,
           ),
-        title: 'Escanear ticket · ncasa',
+        data: { titleKey: 'metadata.ticket' },
       },
       {
         path: 'calendar',
@@ -47,7 +47,7 @@ export const routes: Routes = [
           import('./features/calendar/calendar.component').then(
             (component) => component.CalendarComponent,
           ),
-        title: 'Calendario · ncasa',
+        data: { titleKey: 'metadata.calendar' },
       },
       {
         path: 'household',
@@ -55,7 +55,7 @@ export const routes: Routes = [
           import('./features/household/household.component').then(
             (component) => component.HouseholdComponent,
           ),
-        title: 'Hogar · ncasa',
+        data: { titleKey: 'metadata.household' },
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
@@ -66,7 +66,7 @@ export const routes: Routes = [
       import('./features/style-guide/style-guide.component').then(
         (component) => component.StyleGuideComponent,
       ),
-    title: 'Guía visual · ncasa',
+    data: { titleKey: 'metadata.styleGuide' },
   },
   {
     path: '',
@@ -77,13 +77,13 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () =>
           import('./features/auth/login/login').then((component) => component.Login),
-        title: 'Iniciar sesión · ncasa',
+        data: { titleKey: 'metadata.login' },
       },
       {
         path: 'register',
         loadComponent: () =>
           import('./features/auth/register/register').then((component) => component.Register),
-        title: 'Crear mi cuenta · ncasa',
+        data: { titleKey: 'metadata.register' },
       },
       { path: '', pathMatch: 'full', redirectTo: 'login' },
     ],
