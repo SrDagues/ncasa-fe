@@ -1,8 +1,14 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
-import { AuthenticatedSession, LoginCredentials, User } from '../../domain/auth.models';
+import {
+  AuthenticatedSession,
+  LoginCredentials,
+  RegistrationData,
+  User,
+} from '../../domain/auth.models';
 import { AuthRepository } from '../../application/ports/auth.repository';
 import {
+  EmailAlreadyRegisteredError,
   InvalidCredentialsError,
   NetworkUnavailableError,
   SessionExpiredError,
@@ -37,6 +43,17 @@ export class HttpAuthRepository implements AuthRepository {
     );
   }
 
+  register(data: RegistrationData): Observable<AuthenticatedSession> {
+    return this.http.post<AuthenticationResponseDto>(
+      `${this.apiUrl}/auth/register`,
+      data,
+      { withCredentials: true },
+    ).pipe(
+      map(toAuthenticatedSession),
+      catchError((error: unknown) => throwError(() => translateError(error, 'register'))),
+    );
+  }
+
   refresh(): Observable<AuthenticatedSession> {
     return this.http.post<AuthenticationResponseDto>(
       `${this.apiUrl}/auth/refresh`,
@@ -63,9 +80,10 @@ export class HttpAuthRepository implements AuthRepository {
   }
 }
 
-function translateError(error: unknown, operation: 'login' | 'refresh'): Error {
+function translateError(error: unknown, operation: 'login' | 'register' | 'refresh'): Error {
   if (!(error instanceof HttpErrorResponse)) return new UnexpectedAuthenticationError();
   if (error.status === 0) return new NetworkUnavailableError();
+  if (error.status === 409 && operation === 'register') return new EmailAlreadyRegisteredError();
   if (error.status === 401) {
     return operation === 'login' ? new InvalidCredentialsError() : new SessionExpiredError();
   }

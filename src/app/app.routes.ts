@@ -83,7 +83,7 @@ export const routes: Routes = [
         path: 'register',
         loadComponent: () =>
           import('./features/auth/register/register').then((component) => component.Register),
-        title: 'Crear mi hogar · ncasa',
+        title: 'Crear mi cuenta · ncasa',
       },
       { path: '', pathMatch: 'full', redirectTo: 'login' },
     ],

@@ -50,7 +50,7 @@ describe('authInterceptor', () => {
     expect(http.expectOne('/api/auth/me').request.headers.has('Authorization')).toBe(false);
   });
 
-  it.each(['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'])(
+  it.each(['/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/logout'])(
     'should not add authorization to %s',
     (url) => {
       authenticate(store);

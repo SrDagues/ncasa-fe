@@ -9,6 +9,11 @@ export interface LoginCredentials {
   readonly password: string;
 }
 
+export interface RegistrationData {
+  readonly email: string;
+  readonly password: string;
+}
+
 export interface AuthenticatedSession {
   readonly accessToken: string;
   readonly tokenType: 'Bearer';

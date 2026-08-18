@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshSessionCoordinator } from './application/use-cases/refresh-session.coordinator';
+import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { authInterceptor } from './infrastructure/http/auth.interceptor';
 import { HttpAuthRepository } from './infrastructure/http/http-auth.repository';
 import { AuthStore } from './presentation/auth.store';
@@ -15,6 +16,7 @@ describe('web authentication flow', () => {
   let repository: HttpAuthRepository;
   let store: AuthStore;
   let login: LoginUseCase;
+  let register: RegisterUseCase;
   let logout: LogoutUseCase;
 
   beforeEach(() => {
@@ -41,6 +43,7 @@ describe('web authentication flow', () => {
     repository = TestBed.inject(HttpAuthRepository);
     store = TestBed.inject(AuthStore);
     login = new LoginUseCase(repository, store);
+    register = new RegisterUseCase(repository, store);
     logout = new LogoutUseCase(repository, store);
   });
 
@@ -69,6 +72,22 @@ describe('web authentication flow', () => {
     http.expectOne('/api/auth/logout').flush(null, { status: 204, statusText: 'No Content' });
     expect(store.status()).toBe('anonymous');
     expect(store.accessToken()).toBeNull();
+  });
+
+  it('should register, publish the session and authorize protected requests', () => {
+    register.execute({ email: 'user@example.com', password: 'password123' }).subscribe();
+
+    const registration = http.expectOne('/api/auth/register');
+    expect(registration.request.method).toBe('POST');
+    expect(registration.request.withCredentials).toBe(true);
+    expect(registration.request.headers.has('Authorization')).toBe(false);
+    registration.flush(session('registration-token'), { status: 201, statusText: 'Created' });
+
+    expect(store.status()).toBe('authenticated');
+    client.get('/api/protected').subscribe();
+    const protectedRequest = http.expectOne('/api/protected');
+    expect(protectedRequest.request.headers.get('Authorization')).toBe('Bearer registration-token');
+    protectedRequest.flush({ ok: true });
   });
 });
 

@@ -5,6 +5,7 @@ import { describe, beforeEach, afterEach, expect, it } from 'vitest';
 import { HttpAuthRepository } from './http-auth.repository';
 import {
   InvalidCredentialsError,
+  EmailAlreadyRegisteredError,
   NetworkUnavailableError,
   SessionExpiredError,
 } from '../../application/auth.errors';
@@ -50,6 +51,40 @@ describe('HttpAuthRepository login', () => {
       user: { id: 1, email: 'user@example.com', roles: ['ROLE_USER'] },
     });
     expect(session).not.toHaveProperty('refreshToken');
+  });
+
+  it('should register an account through the web API and receive a session', () => {
+    let session: unknown;
+
+    repository.register({ email: 'user@example.com', password: 'password123' })
+      .subscribe((result) => session = result);
+
+    const request = http.expectOne('/api/auth/register');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      email: 'user@example.com',
+      password: 'password123',
+    });
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({
+      accessToken: 'access-token',
+      tokenType: 'Bearer',
+      expiresIn: 900,
+      user: { id: 1, email: 'user@example.com', roles: ['ROLE_USER'] },
+    }, { status: 201, statusText: 'Created' });
+
+    expect(session).toMatchObject({ accessToken: 'access-token' });
+    expect(session).not.toHaveProperty('refreshToken');
+  });
+
+  it('should translate a duplicate email into an application error', () => {
+    let failure: unknown;
+    repository.register({ email: 'user@example.com', password: 'password123' })
+      .subscribe({ error: (error: unknown) => failure = error });
+
+    http.expectOne('/api/auth/register').flush(null, { status: 409, statusText: 'Conflict' });
+
+    expect(failure).toBeInstanceOf(EmailAlreadyRegisteredError);
   });
 
   it('should refresh the session through the HttpOnly cookie without a token body', () => {

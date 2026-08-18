@@ -12,6 +12,7 @@ import { RestoreSessionUseCase } from './features/auth/application/use-cases/res
 import { firstValueFrom } from 'rxjs';
 import { RefreshSessionCoordinator } from './features/auth/application/use-cases/refresh-session.coordinator';
 import { LogoutUseCase } from './features/auth/application/use-cases/logout.use-case';
+import { RegisterUseCase } from './features/auth/application/use-cases/register.use-case';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,6 +27,13 @@ export const appConfig: ApplicationConfig = {
     {
       provide: LoginUseCase,
       useFactory: () => new LoginUseCase(
+        inject(HttpAuthRepository),
+        inject(AuthStore),
+      ),
+    },
+    {
+      provide: RegisterUseCase,
+      useFactory: () => new RegisterUseCase(
         inject(HttpAuthRepository),
         inject(AuthStore),
       ),

@@ -62,6 +62,7 @@ class FakeAuthRepository implements AuthRepository {
     return this.loginResult;
   }
 
+  register(): Observable<AuthenticatedSession> { return throwError(() => new Error('unused')); }
   refresh(): Observable<AuthenticatedSession> { return throwError(() => new Error('unused')); }
   logout(): Observable<void> { return throwError(() => new Error('unused')); }
   me(): Observable<User> { return throwError(() => new Error('unused')); }

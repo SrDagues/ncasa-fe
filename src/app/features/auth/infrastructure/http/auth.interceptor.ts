@@ -4,7 +4,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthStore } from '../../presentation/auth.store';
 import { RefreshSessionCoordinator } from '../../application/use-cases/refresh-session.coordinator';
 
-const publicSessionEndpoints = /\/api\/auth\/(login|refresh|logout)$/;
+const publicSessionEndpoints = /\/api\/auth\/(login|register|refresh|logout)$/;
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const store = inject(AuthStore);
