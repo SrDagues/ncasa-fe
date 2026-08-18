@@ -14,7 +14,6 @@ import {
   EVENTS,
   EVENT_CATEGORIES,
   EXPENSES,
-  HOUSEHOLD_NAME,
   MEMBERS,
 } from '../../core/demo-content';
 
@@ -37,7 +36,6 @@ import {
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {
-  readonly household = HOUSEHOLD_NAME;
   readonly members = MEMBERS;
   readonly currentMember = MEMBERS[0];
 

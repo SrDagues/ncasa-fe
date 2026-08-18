@@ -11,6 +11,7 @@ import { InputComponent } from '../../shared/components/input/input.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-style-guide',
@@ -28,6 +29,7 @@ import { AvatarComponent } from '../../shared/components/avatar/avatar.component
     FormFieldComponent,
     CheckboxComponent,
     AvatarComponent,
+    TranslatePipe,
   ],
   templateUrl: './style-guide.component.html',
 })

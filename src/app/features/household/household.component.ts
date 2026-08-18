@@ -10,11 +10,7 @@ import { InputComponent } from '../../shared/components/input/input.component';
 import { SelectComponent } from '../../shared/components/select/select.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedCurrencyPipe } from '../../core/i18n/localized-format.pipe';
-import {
-  HOUSEHOLD_NAME,
-  MEMBERS,
-  PENDING_INVITES,
-} from '../../core/demo-content';
+import { MEMBERS, PENDING_INVITES } from '../../core/demo-content';
 
 @Component({
   selector: 'app-household',
@@ -36,7 +32,6 @@ import {
 })
 export class HouseholdComponent {
   private readonly translate = inject(TranslateService);
-  readonly household = HOUSEHOLD_NAME;
   readonly members = MEMBERS;
   readonly invites = PENDING_INVITES;
 

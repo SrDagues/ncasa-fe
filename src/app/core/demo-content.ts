@@ -139,5 +139,3 @@ export const EVENTS = [
   { id: 'v4', titleKey: 'demo.familyDinner', category: 'citas', day: 18, time: '21:00', date: '2024-05-18' },
   { id: 'v5', titleKey: 'demo.payRent', category: 'pagos', day: 5, time: '12:00', date: '2024-05-05' },
 ];
-
-export const HOUSEHOLD_NAME = 'Casa Verde';

@@ -37,7 +37,7 @@
   <div *ngIf="variant !== 'mark'" class="flex flex-col leading-none">
     <span [ngClass]="[wordSize, wordColor]" class="font-semibold tracking-tight">ncasa</span>
     <span *ngIf="variant === 'full'" [ngClass]="tagColor" class="mt-1 text-xs font-normal">
-      Vida en común
+      {{ 'layout.tagline' | translate }}
     </span>
   </div>
 </div>
