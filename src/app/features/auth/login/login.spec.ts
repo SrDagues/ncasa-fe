@@ -81,6 +81,7 @@ describe('Login page', () => {
 
     const alert = fixture.nativeElement.querySelector('[role="alert"]');
     expect(alert?.textContent).toContain('correo o la contraseña');
+    expect(alert?.classList).toContain('form-message--error');
   });
 
   it('should prevent duplicate submissions while login is pending', () => {

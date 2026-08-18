@@ -74,7 +74,7 @@ describe('Register page', () => {
     expect(navigate).toHaveBeenCalledWith('/app/dashboard');
   });
 
-  it('should explain when the email is already registered', () => {
+  it('should not reveal whether the email is already registered', () => {
     execute.mockReturnValue(throwError(() => new EmailAlreadyRegisteredError()));
     const fixture = TestBed.createComponent(Register);
     fixture.detectChanges();
@@ -83,8 +83,10 @@ describe('Register page', () => {
     submit(fixture.nativeElement);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent)
-      .toContain('Ya existe una cuenta');
+    const alert = fixture.nativeElement.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain('No hemos podido crear la cuenta');
+    expect(alert?.textContent).not.toMatch(/existe|registrad/i);
+    expect(alert?.classList).toContain('form-message--error');
   });
 
   it('should explain network failures', () => {

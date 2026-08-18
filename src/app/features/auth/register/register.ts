@@ -56,7 +56,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
 
 function registrationErrorMessage(error: unknown): string {
   if (error instanceof EmailAlreadyRegisteredError) {
-    return 'Ya existe una cuenta con este correo electrónico.';
+    return 'No hemos podido crear la cuenta con los datos indicados. Revisa los datos o intenta iniciar sesión.';
   }
   if (error instanceof NetworkUnavailableError) {
     return 'No podemos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.';

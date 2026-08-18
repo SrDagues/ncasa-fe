@@ -6,7 +6,7 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()" novalidate>
     @if (errorMessage()) {
-      <p class="form-error" role="alert" aria-live="assertive">{{ errorMessage() }}</p>
+      <p class="form-message form-message--error" role="alert" aria-live="assertive">{{ errorMessage() }}</p>
     }
     <div class="form-field">
       <label for="login-email">Correo electrónico</label>
@@ -15,7 +15,7 @@
         <input id="login-email" formControlName="email" name="email" type="email" inputmode="email" placeholder="tu@correo.com" autocomplete="email" [attr.aria-invalid]="submitted() && form.controls.email.invalid" [attr.aria-describedby]="submitted() && form.controls.email.invalid ? 'login-email-error' : null">
       </div>
       @if (submitted() && form.controls.email.invalid) {
-        <p id="login-email-error" class="form-error">Introduce un correo electrónico válido.</p>
+        <p id="login-email-error" class="field-message field-message--error">Introduce un correo electrónico válido.</p>
       }
     </div>
 
@@ -29,7 +29,7 @@
         </button>
       </div>
       @if (submitted() && form.controls.password.invalid) {
-        <p id="login-password-error" class="form-error">La contraseña debe tener al menos 8 caracteres.</p>
+        <p id="login-password-error" class="field-message field-message--error">La contraseña debe tener al menos 8 caracteres.</p>
       }
     </div>
 

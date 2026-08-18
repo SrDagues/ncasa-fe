@@ -14,7 +14,7 @@
           [attr.aria-describedby]="submitted() && form.controls.email.invalid ? 'register-email-error' : null">
       </div>
       @if (submitted() && form.controls.email.invalid) {
-        <p id="register-email-error" class="form-field__error">Introduce un correo electrónico válido.</p>
+        <p id="register-email-error" class="field-message field-message--error">Introduce un correo electrónico válido.</p>
       }
     </div>
 
@@ -30,7 +30,7 @@
         </button>
       </div>
       @if (submitted() && form.controls.password.invalid) {
-        <p id="register-password-error" class="form-field__error">La contraseña debe tener entre 8 y 128 caracteres.</p>
+        <p id="register-password-error" class="field-message field-message--error">La contraseña debe tener entre 8 y 128 caracteres.</p>
       }
     </div>
 
@@ -43,7 +43,7 @@
           [attr.aria-describedby]="submitted() && (form.controls.passwordConfirmation.invalid || form.hasError('passwordsMismatch')) ? 'register-password-confirmation-error' : null">
       </div>
       @if (submitted() && (form.controls.passwordConfirmation.invalid || form.hasError('passwordsMismatch'))) {
-        <p id="register-password-confirmation-error" class="form-field__error">Las contraseñas no coinciden.</p>
+        <p id="register-password-confirmation-error" class="field-message field-message--error">Las contraseñas no coinciden.</p>
       }
     </div>
 
@@ -54,11 +54,11 @@
       Acepto los términos y la política de privacidad.
     </label>
     @if (submitted() && form.controls.acceptTerms.invalid) {
-      <p id="register-terms-error" class="form-field__error">Debes aceptar los términos para continuar.</p>
+      <p id="register-terms-error" class="field-message field-message--error">Debes aceptar los términos para continuar.</p>
     }
 
     @if (errorMessage()) {
-      <p role="alert" class="form-error">{{ errorMessage() }}</p>
+      <p role="alert" aria-live="assertive" class="form-message form-message--error">{{ errorMessage() }}</p>
     }
 
     <button class="primary-button" type="submit" [disabled]="pending()">
