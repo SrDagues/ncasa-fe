@@ -1,48 +1,69 @@
 <section class="auth-form" aria-labelledby="register-title">
   <header class="auth-form__header">
-    <h1 id="register-title" class="auth-form__title">Crea tu hogar</h1>
+    <h1 id="register-title" class="auth-form__title">Crea tu cuenta</h1>
     <p class="auth-form__subtitle">Empieza a organizar la vida en común en un minuto.</p>
   </header>
 
-  <form (ngSubmit)="submit()">
-    <div class="form-field">
-      <label for="register-name">Tu nombre</label>
-      <div class="input-shell">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-        <input id="register-name" name="name" placeholder="Ej. Lucía" autocomplete="name" [(ngModel)]="name" required>
-      </div>
-    </div>
-
-    <div class="form-field">
-      <label for="register-household">Nombre del hogar</label>
-      <div class="input-shell">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>
-        <input id="register-household" name="household" placeholder="Ej. Piso de Malasaña" autocomplete="organization" [(ngModel)]="household" required>
-      </div>
-      <p class="form-field__hint">Podrás invitar a más personas después.</p>
-    </div>
-
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()">
     <div class="form-field">
       <label for="register-email">Correo electrónico</label>
       <div class="input-shell">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-        <input id="register-email" name="email" type="email" placeholder="tu@correo.com" autocomplete="email" [(ngModel)]="email" required>
+        <input id="register-email" type="email" placeholder="tu@correo.com" autocomplete="email" formControlName="email"
+          [attr.aria-invalid]="submitted() && form.controls.email.invalid"
+          [attr.aria-describedby]="submitted() && form.controls.email.invalid ? 'register-email-error' : null">
       </div>
+      @if (submitted() && form.controls.email.invalid) {
+        <p id="register-email-error" class="field-message field-message--error">Introduce un correo electrónico válido.</p>
+      }
     </div>
 
     <div class="form-field">
       <label for="register-password">Contraseña</label>
       <div class="input-shell">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <input id="register-password" name="password" [type]="showPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="new-password" minlength="8" [(ngModel)]="password" required>
-        <button class="input-shell__action" type="button" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+        <input id="register-password" [type]="showPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="new-password" formControlName="password"
+          [attr.aria-invalid]="submitted() && form.controls.password.invalid"
+          [attr.aria-describedby]="submitted() && form.controls.password.invalid ? 'register-password-error' : null">
+        <button class="input-shell__action" type="button" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Ocultar contraseñas' : 'Mostrar contraseñas'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.1 12a10.9 10.9 0 0 1 19.8 0 10.9 10.9 0 0 1-19.8 0Z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
+      @if (submitted() && form.controls.password.invalid) {
+        <p id="register-password-error" class="field-message field-message--error">La contraseña debe tener entre 8 y 128 caracteres.</p>
+      }
     </div>
 
-    <label class="checkbox"><input name="accept" type="checkbox" [(ngModel)]="accept" required> Acepto los términos y la política de privacidad.</label>
-    <button class="primary-button" type="submit" [disabled]="!accept">Crear mi hogar</button>
+    <div class="form-field">
+      <label for="register-password-confirmation">Confirma la contraseña</label>
+      <div class="input-shell">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input id="register-password-confirmation" [type]="showPassword ? 'text' : 'password'" autocomplete="new-password" formControlName="passwordConfirmation"
+          [attr.aria-invalid]="submitted() && (form.controls.passwordConfirmation.invalid || form.hasError('passwordsMismatch'))"
+          [attr.aria-describedby]="submitted() && (form.controls.passwordConfirmation.invalid || form.hasError('passwordsMismatch')) ? 'register-password-confirmation-error' : null">
+      </div>
+      @if (submitted() && (form.controls.passwordConfirmation.invalid || form.hasError('passwordsMismatch'))) {
+        <p id="register-password-confirmation-error" class="field-message field-message--error">Las contraseñas no coinciden.</p>
+      }
+    </div>
+
+    <label class="checkbox">
+      <input id="register-terms" type="checkbox" formControlName="acceptTerms"
+        [attr.aria-invalid]="submitted() && form.controls.acceptTerms.invalid"
+        [attr.aria-describedby]="submitted() && form.controls.acceptTerms.invalid ? 'register-terms-error' : null">
+      Acepto los términos y la política de privacidad.
+    </label>
+    @if (submitted() && form.controls.acceptTerms.invalid) {
+      <p id="register-terms-error" class="field-message field-message--error">Debes aceptar los términos para continuar.</p>
+    }
+
+    @if (errorMessage()) {
+      <p role="alert" aria-live="assertive" class="form-message form-message--error">{{ errorMessage() }}</p>
+    }
+
+    <button class="primary-button" type="submit" [disabled]="pending()">
+      {{ pending() ? 'Creando cuenta…' : 'Crear mi cuenta' }}
+    </button>
   </form>
 
   <p class="auth-form__footer">¿Ya tienes cuenta? <a routerLink="/login" class="text-link">Entra aquí</a></p>
