@@ -17,11 +17,13 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LanguageService } from './core/i18n/language.service';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title.strategy';
+import { provideHousehold } from './features/household/infrastructure/household.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
+    provideHousehold(),
     provideRouter(routes),
     { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
     provideTranslateService({

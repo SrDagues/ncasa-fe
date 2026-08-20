@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { InvalidCredentialsError, NetworkUnavailableError } from '../application/auth.errors';
@@ -15,6 +15,7 @@ export class Login {
   private readonly formBuilder = inject(FormBuilder);
   private readonly login = inject(LoginUseCase);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly form = this.formBuilder.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -34,9 +35,14 @@ export class Login {
     this.login.execute(this.form.getRawValue()).pipe(
       finalize(() => this.pending.set(false)),
     ).subscribe({
-      next: () => void this.router.navigateByUrl('/app/dashboard'),
+      next: () => void this.router.navigateByUrl(this.safeReturnUrl()),
       error: (error: unknown) => this.errorMessage.set(loginErrorKey(error)),
     });
+  }
+
+  private safeReturnUrl(): string {
+    const requested = this.route.snapshot.queryParamMap.get('returnUrl');
+    return requested?.startsWith('/app/') ? requested : '/app/dashboard';
   }
 }
 

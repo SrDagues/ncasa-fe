@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -9,13 +9,10 @@ import { AvatarComponent } from '../../shared/components/avatar/avatar.component
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../core/i18n/localized-format.pipe';
-import {
-  CATEGORIES,
-  EVENTS,
-  EVENT_CATEGORIES,
-  EXPENSES,
-  MEMBERS,
-} from '../../core/demo-content';
+import { CATEGORIES, EXPENSES } from '../expenses';
+import { EVENTS, EVENT_CATEGORIES } from '../calendar';
+import { HouseholdStore } from '../household';
+import { AuthStore } from '../auth';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,8 +33,11 @@ import {
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {
-  readonly members = MEMBERS;
-  readonly currentMember = MEMBERS[0];
+  private readonly household = inject(HouseholdStore);
+  private readonly auth = inject(AuthStore);
+  readonly members = this.household.members;
+  readonly householdName = computed(() => this.household.active()?.name ?? '—');
+  readonly currentUserEmail = computed(() => this.auth.currentUser()?.email ?? '');
 
   readonly recentExpenses = EXPENSES.slice(0, 4);
   readonly upcomingEvents = [...EVENTS].sort((a, b) => a.day - b.day).slice(0, 3);
@@ -66,10 +66,6 @@ export class DashboardComponent {
     if (status === 'settled') return 'positive';
     if (status === 'pending') return 'warning';
     return 'neutral';
-  }
-
-  absAmount(value: number): number {
-    return Math.abs(value);
   }
 
   trackEvent(_: number, event: { id: string }): string {

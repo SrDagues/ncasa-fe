@@ -1,87 +1,126 @@
 <section class="flex flex-col gap-6">
-  <header class="flex flex-wrap items-center gap-4">
-    <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-ncasa-forest text-ncasa-cream">
-      <lucide-icon name="home" [size]="26" aria-hidden="true"></lucide-icon>
-    </span>
-    <div>
-      <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'demo.household' | translate }}</h1>
-      <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.summary' | translate: { members: members.length, invites: invites.length } }}</p>
-    </div>
-  </header>
+  @if (store.state() === 'loading' || store.state() === 'initial') {
+    <app-card><p role="status" class="text-sm text-ncasa-muted">{{ 'household.loading' | translate }}</p></app-card>
+  } @else {
+    @if (store.error(); as error) { <app-alert tone="error">{{ ('household.errors.' + error.kind) | translate }}</app-alert> }
+    @if (store.deliveryWarning()) { <app-alert tone="warning">{{ 'householdDeliveryWarning' | translate }}</app-alert> }
 
-  <div class="grid gap-6 lg:grid-cols-5">
-    <!-- Members -->
-    <app-card padding="none" class="lg:col-span-3">
-      <div class="border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2>
-      </div>
-      <ul class="divide-y divide-ncasa-border">
-        <li *ngFor="let m of members; trackBy: trackMember" class="flex items-center gap-3 px-5 py-4">
-          <app-avatar [initials]="m.initials" [name]="m.name" [color]="m.color" size="lg"></app-avatar>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.name }}</p>
-              <app-badge [tone]="m.role === 'admin' ? 'forest' : 'neutral'">{{ ('household.roles.' + m.role) | translate }}</app-badge>
-            </div>
-            <p class="truncate text-xs text-ncasa-muted">{{ m.email }}</p>
-          </div>
-          <span
-            class="text-sm font-semibold tabular"
-            [ngClass]="m.balance >= 0 ? 'text-ncasa-forest' : 'text-ncasa-coral-dark'"
-          >
-            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | localizedCurrency }}
-          </span>
-        </li>
-      </ul>
-
-      <!-- Pending invites -->
-      <div *ngIf="invites.length" class="border-t border-ncasa-border px-5 py-4">
-        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-ncasa-muted">{{ 'household.pendingInvites' | translate }}</p>
-        <div *ngFor="let inv of invites" class="flex items-center gap-3 py-1.5">
-          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-ncasa-sage-soft text-ncasa-forest">
-            <lucide-icon name="mail" [size]="16" aria-hidden="true"></lucide-icon>
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ inv.email }}</p>
-            <p class="text-xs text-ncasa-muted">{{ inv.sentAgoKey | translate }} · {{ ('household.roles.' + inv.role) | translate }}</p>
-          </div>
-          <app-badge tone="warning" icon="clock">{{ 'common.pending' | translate }}</app-badge>
-        </div>
-      </div>
-    </app-card>
-
-    <div class="flex flex-col gap-6 lg:col-span-2">
-      <!-- Invite -->
-      <app-card>
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.invite' | translate }}</h2>
-        <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.inviteDescription' | translate }}</p>
-        <form (submit)="onInvite($event)" class="mt-4 flex flex-col gap-4">
-          <app-form-field [label]="'common.email' | translate" fieldId="invite-email">
-            <app-input id="invite-email" type="email" [placeholder]="'household.emailPlaceholder' | translate" icon="mail" [(value)]="inviteEmail" />
-          </app-form-field>
-          <app-form-field [label]="'household.role' | translate" fieldId="invite-role">
-            <app-select id="invite-role" [options]="roleOptions()" [value]="inviteRole"></app-select>
-          </app-form-field>
-          <app-button type="submit" variant="primary" icon="user-plus" [fullWidth]="true">{{ 'household.sendInvite' | translate }}</app-button>
-        </form>
-      </app-card>
-
-      <!-- Settle up -->
+    @if (store.receivedInvitations().length) {
       <app-card tone="sage">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.settle' | translate }}</h2>
-        <p class="mt-1 text-sm text-ncasa-forest/70">{{ 'household.settleDescription' | translate }}</p>
-        <ul class="mt-4 flex flex-col gap-2">
-          <li
-            *ngFor="let s of settlements"
-            class="flex items-center gap-2 rounded-xl bg-ncasa-surface px-3 py-2.5 text-sm"
-          >
-            <span class="font-medium text-ncasa-charcoal">{{ s.from.name }}</span>
-            <lucide-icon name="arrow-right" [size]="16" class="text-ncasa-muted" aria-hidden="true"></lucide-icon>
-            <span class="font-medium text-ncasa-charcoal">{{ s.to.name }}</span>
-            <span class="ml-auto font-semibold tabular text-ncasa-forest">{{ s.amount | localizedCurrency }}</span>
-          </li>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.receivedInvites' | translate }}</h2>
+        <ul class="mt-3 space-y-3">
+          @for (invitation of store.receivedInvitations(); track invitation.id) {
+            <li class="flex flex-wrap items-center gap-3 rounded-xl bg-ncasa-surface p-3">
+              <div class="min-w-0 flex-1">
+                <p class="font-medium text-ncasa-charcoal">{{ invitation.householdName }}</p>
+                <p class="text-xs text-ncasa-muted">{{ invitation.invitedByEmail || ('household.unknownAccount' | translate) }} · {{ ('household.roles.' + invitation.role.toLowerCase()) | translate }}</p>
+              </div>
+              <app-button size="sm" (click)="accept(invitation.id)" [disabled]="!!store.pendingOperation()">{{ 'household.accept' | translate }}</app-button>
+            </li>
+          }
         </ul>
       </app-card>
-    </div>
-  </div>
+    }
+
+    @if (store.state() === 'empty') {
+      <header>
+        <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'household.createTitle' | translate }}</h1>
+        <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.createDescription' | translate }}</p>
+      </header>
+      <app-card>
+        <form (submit)="$event.preventDefault(); create()" class="flex flex-col gap-3 sm:flex-row">
+          <label class="flex-1 text-sm font-medium text-ncasa-charcoal">{{ 'household.name' | translate }}
+            <input name="household-name" required maxlength="120" [value]="createName" (input)="setCreateName($event)"
+              class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-4 focus-visible:ring-2 focus-visible:ring-ncasa-forest" />
+          </label>
+          <app-button type="submit" class="self-end" [disabled]="!!store.pendingOperation()">{{ 'household.create' | translate }}</app-button>
+        </form>
+      </app-card>
+    } @else if (store.active(); as household) {
+      <header class="flex flex-wrap items-center gap-4">
+        <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-ncasa-forest text-ncasa-cream"><lucide-icon name="home" [size]="26" aria-hidden="true" /></span>
+        <div class="min-w-0 flex-1">
+          <h1 class="truncate text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ household.name }}</h1>
+          <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.summary' | translate: { members: store.members().length, invites: store.sentInvitations().length } }}</p>
+        </div>
+        <app-button variant="secondary" size="sm" icon="plus" (click)="showCreateForm = !showCreateForm">{{ 'householdNew' | translate }}</app-button>
+        @if (store.capabilities().canLeave) { <app-button variant="destructive" size="sm" (click)="leave()">{{ 'household.leave' | translate }}</app-button> }
+        @if (store.capabilities().canArchive) { <app-button variant="destructive" size="sm" (click)="archive()">{{ 'household.archive' | translate }}</app-button> }
+      </header>
+
+      @if (showCreateForm) {
+        <app-card tone="sage">
+          <form (submit)="$event.preventDefault(); create()" class="flex flex-col gap-3 sm:flex-row">
+            <label class="flex-1 text-sm font-medium text-ncasa-charcoal">{{ 'household.name' | translate }}
+              <input name="new-household-name" required maxlength="120" [value]="createName" (input)="setCreateName($event)"
+                class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-4 focus-visible:ring-2 focus-visible:ring-ncasa-forest" />
+            </label>
+            <div class="flex items-end gap-2">
+              <app-button type="button" variant="tertiary" (click)="showCreateForm = false; createName = ''">{{ 'common.cancel' | translate }}</app-button>
+              <app-button type="submit" [disabled]="!!store.pendingOperation()">{{ 'household.create' | translate }}</app-button>
+            </div>
+          </form>
+        </app-card>
+      }
+
+      @if (store.capabilities().canRename) {
+        <app-card><form (submit)="$event.preventDefault(); rename()" class="flex flex-col gap-3 sm:flex-row">
+          <label class="flex-1 text-sm font-medium text-ncasa-charcoal">{{ 'household.rename' | translate }}
+            <input maxlength="120" [placeholder]="household.name" [value]="renameValue" (input)="setRenameValue($event)"
+              class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-4 focus-visible:ring-2 focus-visible:ring-ncasa-forest" />
+          </label>
+          <app-button type="submit" variant="secondary" class="self-end" [disabled]="!!store.pendingOperation()">{{ 'common.save' | translate }}</app-button>
+        </form></app-card>
+      }
+
+      <div class="grid gap-6 lg:grid-cols-5">
+        <app-card padding="none" class="lg:col-span-3">
+          <div class="border-b border-ncasa-border px-5 py-4"><h2 class="font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2></div>
+          <ul class="divide-y divide-ncasa-border">
+            @for (member of store.members(); track member.id) {
+              <li class="flex flex-wrap items-center gap-3 px-5 py-4">
+                <app-avatar [initials]="initials(member.email)" [name]="memberLabel(member)" size="lg" />
+                <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ncasa-charcoal">{{ memberLabel(member) }}</p>
+                  <app-badge [tone]="member.role === 'ADMIN' ? 'forest' : 'neutral'">{{ ('household.roles.' + member.role.toLowerCase()) | translate }}@if (member.owner) { · {{ 'household.owner' | translate }}}</app-badge>
+                </div>
+                @if (store.capabilities().canManageRoles && !member.owner) {
+                  <app-button size="sm" variant="tertiary" (click)="toggleRole(member)">{{ 'household.changeRole' | translate }}</app-button>
+                  <app-button size="sm" variant="tertiary" (click)="transfer(member)">{{ 'household.transfer' | translate }}</app-button>
+                }
+                @if (canRemove(member)) { <app-button size="sm" variant="destructive" (click)="remove(member)">{{ 'household.remove' | translate }}</app-button> }
+              </li>
+            }
+          </ul>
+          @if (store.sentInvitations().length) {
+            <div class="border-t border-ncasa-border px-5 py-4"><h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-ncasa-muted">{{ 'household.pendingInvites' | translate }}</h3>
+              @for (invitation of store.sentInvitations(); track invitation.id) {
+                <div class="flex items-center gap-3 py-2"><lucide-icon name="mail" [size]="16" aria-hidden="true" />
+                  <span class="min-w-0 flex-1 truncate text-sm">{{ invitation.email }} · {{ ('household.roles.' + invitation.role.toLowerCase()) | translate }}</span>
+                  <app-button size="sm" variant="tertiary" (click)="cancel(invitation.id)">{{ 'common.cancel' | translate }}</app-button>
+                </div>
+              }
+            </div>
+          }
+        </app-card>
+
+        @if (store.capabilities().canInviteMember) {
+          <app-card class="lg:col-span-2"><h2 class="font-semibold text-ncasa-forest">{{ 'household.invite' | translate }}</h2>
+            <form (submit)="$event.preventDefault(); invite()" class="mt-4 flex flex-col gap-4">
+              <label class="text-sm font-medium">{{ 'common.email' | translate }}
+                <input type="email" required maxlength="320" [value]="inviteEmail" (input)="setInviteEmail($event)"
+                  class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-4 focus-visible:ring-2 focus-visible:ring-ncasa-forest" />
+              </label>
+              <label class="text-sm font-medium">{{ 'household.role' | translate }}
+                <select [value]="inviteRole" (change)="setInviteRole($event)" class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-4">
+                  <option value="MEMBER">{{ 'household.roles.member' | translate }}</option>
+                  @if (store.capabilities().canInviteAdmin) { <option value="ADMIN">{{ 'household.roles.admin' | translate }}</option> }
+                </select>
+              </label>
+              <app-button type="submit" [fullWidth]="true" [disabled]="!!store.pendingOperation()">{{ 'household.sendInvite' | translate }}</app-button>
+            </form>
+          </app-card>
+        }
+      </div>
+    }
+  }
 </section>

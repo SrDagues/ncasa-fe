@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CardComponent } from '../../shared/components/card/card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { IconButtonComponent } from '../../shared/components/icon-button/icon-button.component';
-import { EVENTS, EVENT_CATEGORIES } from '../../core/demo-content';
+import { EVENTS, EVENT_CATEGORIES } from '.';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../core/i18n/localized-format.pipe';
 

@@ -7,7 +7,7 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { FilterChipComponent } from '../../../shared/components/filter-chip/filter-chip.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { CATEGORIES, EXPENSES } from '../../../core/demo-content';
+import { CATEGORIES, EXPENSES } from '..';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../../core/i18n/localized-format.pipe';
 
