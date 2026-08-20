@@ -1,15 +1,15 @@
 <section class="flex flex-col gap-6">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">Gastos</h1>
-      <p class="mt-1 text-sm text-ncasa-muted">Todo lo que habéis compartido en casa.</p>
+      <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'expenses.title' | translate }}</h1>
+      <p class="mt-1 text-sm text-ncasa-muted">{{ 'expenses.subtitle' | translate }}</p>
     </div>
     <div class="flex items-center gap-2">
       <a routerLink="/app/tickets">
-        <app-button variant="secondary" icon="scan-line">Escanear ticket</app-button>
+        <app-button variant="secondary" icon="scan-line">{{ 'expenses.scanTicket' | translate }}</app-button>
       </a>
       <a routerLink="/app/expenses/new">
-        <app-button variant="primary" icon="plus">Añadir gasto</app-button>
+        <app-button variant="primary" icon="plus">{{ 'expenses.add' | translate }}</app-button>
       </a>
     </div>
   </header>
@@ -18,8 +18,8 @@
   <app-card tone="forest">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm text-ncasa-cream/70">Total {{ activeFilter === 'todos' ? 'del mes' : activeFilter }}</p>
-        <p class="mt-1 text-3xl font-semibold text-ncasa-cream">{{ totalFiltered | currency: 'EUR' }}</p>
+        <p class="text-sm text-ncasa-cream/70">{{ (activeFilter === 'todos' ? 'expenses.totalMonth' : 'expenses.totalFilter') | translate: { filter: (('expenses.filters.' + activeFilter) | translate) } }}</p>
+        <p class="mt-1 text-3xl font-semibold text-ncasa-cream">{{ totalFiltered | localizedCurrency }}</p>
       </div>
       <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ncasa-cream/15 text-ncasa-cream">
         <lucide-icon name="wallet" [size]="24" aria-hidden="true"></lucide-icon>
@@ -34,7 +34,7 @@
       [active]="activeFilter === f.key"
       (click)="setFilter(f.key)"
     >
-      {{ f.label }}
+      {{ f.labelKey | translate }}
     </app-filter-chip>
   </div>
 
@@ -46,14 +46,14 @@
           <lucide-icon [name]="categoryIcon(e.category)" [size]="20" aria-hidden="true"></lucide-icon>
         </span>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.concept }}</p>
+          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.conceptKey | translate }}</p>
           <p class="text-xs text-ncasa-muted">
-            {{ categoryLabel(e.category) }} · Pagó {{ e.paidByName }} · {{ e.date }}
+            {{ categoryLabel(e.category) | translate }} · {{ 'common.paidBy' | translate: { name: e.paidByName } }} · {{ e.date | localizedDate }}
           </p>
         </div>
         <div class="flex flex-col items-end gap-1.5">
-          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | currency: 'EUR' }}</span>
-          <app-badge [tone]="statusTone(e.status)">{{ e.status }}</app-badge>
+          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | localizedCurrency }}</span>
+          <app-badge [tone]="statusTone(e.status)">{{ ('expenses.status.' + e.status) | translate }}</app-badge>
         </div>
       </li>
     </ul>
@@ -62,11 +62,11 @@
   <ng-template #empty>
     <app-empty-state
       icon="inbox"
-      title="Nada por aquí"
-      description="No hay gastos con este filtro. Prueba con otro o añade uno nuevo."
+      [title]="'expenses.emptyTitle' | translate"
+      [description]="'expenses.emptyDescription' | translate"
     >
       <a routerLink="/app/expenses/new">
-        <app-button variant="primary" icon="plus">Añadir gasto</app-button>
+        <app-button variant="primary" icon="plus">{{ 'expenses.add' | translate }}</app-button>
       </a>
     </app-empty-state>
   </ng-template>

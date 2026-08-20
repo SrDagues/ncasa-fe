@@ -2,35 +2,35 @@
   <!-- Greeting -->
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <p class="text-sm text-ncasa-muted">{{ household }}</p>
+      <p class="text-sm text-ncasa-muted">{{ 'demo.household' | translate }}</p>
       <h1 class="mt-1 text-2xl font-semibold text-ncasa-forest sm:text-3xl">
-        Hola, {{ currentMember.name }}
+        {{ 'dashboard.hello' | translate: { name: currentMember.name } }}
       </h1>
     </div>
     <a routerLink="/app/expenses/new">
-      <app-button variant="primary" icon="plus">Añadir gasto</app-button>
+      <app-button variant="primary" icon="plus">{{ 'dashboard.addExpense' | translate }}</app-button>
     </a>
   </header>
 
   <!-- Stats -->
   <div class="grid gap-4 sm:grid-cols-3">
     <app-stat-card
-      label="Gastado este mes"
-      [value]="(totalThisMonth | currency: 'EUR')!"
-      caption="En todo el hogar"
+      [label]="'dashboard.spentMonth' | translate"
+      [value]="totalThisMonth | localizedCurrency"
+      [caption]="'dashboard.wholeHousehold' | translate"
       icon="chart-pie"
     ></app-stat-card>
     <app-stat-card
-      label="Tu saldo"
-      [value]="(currentMember.balance | currency: 'EUR')!"
-      caption="Te deben en total"
+      [label]="'dashboard.yourBalance' | translate"
+      [value]="currentMember.balance | localizedCurrency"
+      [caption]="'dashboard.owedToYou' | translate"
       icon="piggy-bank"
       tone="positive"
     ></app-stat-card>
     <app-stat-card
-      label="Pendiente de repartir"
-      [value]="(pendingToSplit | currency: 'EUR')!"
-      caption="1 gasto sin repartir"
+      [label]="'dashboard.pendingSplit' | translate"
+      [value]="pendingToSplit | localizedCurrency"
+      [caption]="'dashboard.onePending' | translate"
       icon="wallet"
       tone="coral"
     ></app-stat-card>
@@ -40,9 +40,9 @@
     <!-- Balances -->
     <app-card padding="none" class="lg:col-span-3">
       <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">Cómo van las cuentas</h2>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.balances' | translate }}</h2>
         <a routerLink="/app/household" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-          Ver hogar
+          {{ 'dashboard.viewHousehold' | translate }}
         </a>
       </div>
       <ul class="divide-y divide-ncasa-border">
@@ -50,13 +50,13 @@
           <app-avatar [initials]="m.initials" [name]="m.name" [color]="m.color" size="md"></app-avatar>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.name }}</p>
-            <p class="text-xs text-ncasa-muted">{{ m.balance >= 0 ? 'Le deben' : 'Debe' }}</p>
+            <p class="text-xs text-ncasa-muted">{{ (m.balance >= 0 ? 'dashboard.isOwed' : 'dashboard.owes') | translate }}</p>
           </div>
           <span
             class="text-sm font-semibold tabular"
             [ngClass]="m.balance >= 0 ? 'text-ncasa-forest' : 'text-ncasa-coral-dark'"
           >
-            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | currency: 'EUR' }}
+            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | localizedCurrency }}
           </span>
         </li>
       </ul>
@@ -65,17 +65,17 @@
     <!-- Upcoming events -->
     <app-card padding="none" class="lg:col-span-2">
       <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">Próximos eventos</h2>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.upcoming' | translate }}</h2>
         <a routerLink="/app/calendar" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-          Calendario
+          {{ 'navigation.calendar' | translate }}
         </a>
       </div>
       <ul class="divide-y divide-ncasa-border">
         <li *ngFor="let e of upcomingEvents; trackBy: trackEvent" class="flex items-center gap-3 px-5 py-3.5">
           <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full" [ngClass]="eventDot(e.category)"></span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.title }}</p>
-            <p class="text-xs text-ncasa-muted">{{ e.dateLabel }}<span *ngIf="e.time"> · {{ e.time }}</span></p>
+            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.titleKey | translate }}</p>
+            <p class="text-xs text-ncasa-muted">{{ e.date | localizedDate }}<span *ngIf="e.time"> · {{ e.time }}</span></p>
           </div>
         </li>
       </ul>
@@ -85,9 +85,9 @@
   <!-- Recent expenses -->
   <app-card padding="none">
     <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-      <h2 class="text-base font-semibold text-ncasa-forest">Movimientos recientes</h2>
+      <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.recent' | translate }}</h2>
       <a routerLink="/app/expenses" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-        Ver todos
+        {{ 'dashboard.viewAll' | translate }}
       </a>
     </div>
     <ul class="divide-y divide-ncasa-border">
@@ -96,12 +96,12 @@
           <lucide-icon [name]="categoryIcon(e.category)" [size]="18" aria-hidden="true"></lucide-icon>
         </span>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.concept }}</p>
-          <p class="text-xs text-ncasa-muted">{{ e.paidByName }} · {{ e.date }}</p>
+          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.conceptKey | translate }}</p>
+          <p class="text-xs text-ncasa-muted">{{ 'common.paidBy' | translate: { name: e.paidByName } }} · {{ e.date | localizedDate }}</p>
         </div>
         <div class="flex flex-col items-end gap-1">
-          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | currency: 'EUR' }}</span>
-          <app-badge [tone]="statusTone(e.status)">{{ e.status }}</app-badge>
+          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | localizedCurrency }}</span>
+          <app-badge [tone]="statusTone(e.status)">{{ ('expenses.status.' + e.status) | translate }}</app-badge>
         </div>
       </li>
     </ul>

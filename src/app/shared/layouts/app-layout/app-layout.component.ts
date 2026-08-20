@@ -6,6 +6,8 @@ import { LogoComponent } from '../../components/logo/logo.component';
 import { IconButtonComponent } from '../../components/icon-button/icon-button.component';
 import { AvatarComponent } from '../../components/avatar/avatar.component';
 import { LogoutUseCase } from '../../../features/auth/application/use-cases/logout.use-case';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LanguageSwitcherComponent } from '../../components/language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-app-layout',
@@ -19,6 +21,8 @@ import { LogoutUseCase } from '../../../features/auth/application/use-cases/logo
     LogoComponent,
     IconButtonComponent,
     AvatarComponent,
+    TranslatePipe,
+    LanguageSwitcherComponent,
   ],
   templateUrl: './app-layout.component.html',
 })
@@ -28,11 +32,11 @@ export class AppLayoutComponent {
   protected readonly logoutPending = signal(false);
 
   readonly nav = [
-    { label: 'Inicio', icon: 'home', path: '/app/dashboard' },
-    { label: 'Gastos', icon: 'wallet', path: '/app/expenses' },
-    { label: 'Tickets', icon: 'receipt-text', path: '/app/tickets' },
-    { label: 'Calendario', icon: 'calendar', path: '/app/calendar' },
-    { label: 'Hogar', icon: 'users', path: '/app/household' },
+    { labelKey: 'navigation.dashboard', icon: 'home', path: '/app/dashboard' },
+    { labelKey: 'navigation.expenses', icon: 'wallet', path: '/app/expenses' },
+    { labelKey: 'navigation.tickets', icon: 'receipt-text', path: '/app/tickets' },
+    { labelKey: 'navigation.calendar', icon: 'calendar', path: '/app/calendar' },
+    { labelKey: 'navigation.household', icon: 'users', path: '/app/household' },
   ];
 
   protected logout(): void {

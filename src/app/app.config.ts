@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, TitleStrategy } from '@angular/router';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './features/auth/infrastructure/http/auth.interceptor';
@@ -13,12 +13,22 @@ import { firstValueFrom } from 'rxjs';
 import { RefreshSessionCoordinator } from './features/auth/application/use-cases/refresh-session.coordinator';
 import { LogoutUseCase } from './features/auth/application/use-cases/logout.use-case';
 import { RegisterUseCase } from './features/auth/application/use-cases/register.use-case';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { LanguageService } from './core/i18n/language.service';
+import { TranslatedTitleStrategy } from './core/i18n/translated-title.strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes),
+    { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
+    provideTranslateService({
+      fallbackLang: 'es',
+      lang: 'es',
+      loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
+    }),
     AuthStore,
     {
       provide: HttpAuthRepository,
@@ -60,5 +70,6 @@ export const appConfig: ApplicationConfig = {
       ),
     },
     provideAppInitializer(() => firstValueFrom(inject(RestoreSessionUseCase).execute())),
+    provideAppInitializer(() => inject(LanguageService).initialize()),
   ]
 };

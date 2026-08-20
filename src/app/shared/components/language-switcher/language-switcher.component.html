@@ -1,0 +1,10 @@
+<label class="sr-only" for="language-selector">{{ 'language.label' | translate }}</label>
+<select
+  id="language-selector"
+  class="h-10 rounded-xl border border-ncasa-border bg-ncasa-surface px-3 text-sm font-medium text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"
+  [value]="currentLanguage()"
+  (change)="changeLanguage($event)"
+>
+  <option value="es">{{ 'language.es' | translate }}</option>
+  <option value="en">{{ 'language.en' | translate }}</option>
+</select>

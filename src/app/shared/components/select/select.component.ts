@@ -12,6 +12,6 @@ export class SelectComponent {
   @Input() id?: string;
   @Input() options: any[] = [];
   @Input() value?: string;
-  @Input() placeholder = 'Selecciona una opción';
+  @Input() placeholder = '';
   @Input() disabled = false;
 }

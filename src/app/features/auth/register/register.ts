@@ -10,10 +10,11 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { EmailAlreadyRegisteredError, NetworkUnavailableError } from '../application/auth.errors';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './register.html',
 })
 export class Register {
@@ -43,7 +44,7 @@ export class Register {
       finalize(() => this.pending.set(false)),
     ).subscribe({
       next: () => void this.router.navigateByUrl('/app/dashboard'),
-      error: (error: unknown) => this.errorMessage.set(registrationErrorMessage(error)),
+      error: (error: unknown) => this.errorMessage.set(registrationErrorKey(error)),
     });
   }
 }
@@ -54,12 +55,12 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   return password === confirmation ? null : { passwordsMismatch: true };
 }
 
-function registrationErrorMessage(error: unknown): string {
+function registrationErrorKey(error: unknown): string {
   if (error instanceof EmailAlreadyRegisteredError) {
-    return 'No hemos podido crear la cuenta con los datos indicados. Revisa los datos o intenta iniciar sesión.';
+    return 'auth.errors.emailRegistered';
   }
   if (error instanceof NetworkUnavailableError) {
-    return 'No podemos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.';
+    return 'auth.errors.network';
   }
-  return 'No hemos podido crear tu cuenta. Inténtalo de nuevo.';
+  return 'auth.errors.registerUnknown';
 }

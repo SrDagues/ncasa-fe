@@ -6,6 +6,8 @@ import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { AuthenticatedSession } from '../domain/auth.models';
 import { Login } from './login';
 import { InvalidCredentialsError } from '../application/auth.errors';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import es from '../../../../../public/i18n/es.json';
 
 describe('Login page', () => {
   const session: AuthenticatedSession = {
@@ -22,9 +24,11 @@ describe('Login page', () => {
       imports: [Login],
       providers: [
         provideRouter([]),
+        provideTranslateService({ fallbackLang: 'es', lang: 'es' }),
         { provide: LoginUseCase, useValue: { execute } },
       ],
     });
+    TestBed.inject(TranslateService).setTranslation('es', es);
   });
 
   it('should not submit invalid credentials', () => {

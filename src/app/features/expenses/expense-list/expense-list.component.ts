@@ -8,6 +8,8 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { FilterChipComponent } from '../../../shared/components/filter-chip/filter-chip.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CATEGORIES, EXPENSES } from '../../../core/demo-content';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../../core/i18n/localized-format.pipe';
 
 @Component({
   selector: 'app-expense-list',
@@ -21,6 +23,9 @@ import { CATEGORIES, EXPENSES } from '../../../core/demo-content';
     ButtonComponent,
     FilterChipComponent,
     EmptyStateComponent,
+    TranslatePipe,
+    LocalizedCurrencyPipe,
+    LocalizedDatePipe,
   ],
   templateUrl: './expense-list.component.html',
 })
@@ -28,10 +33,10 @@ export class ExpenseListComponent {
   readonly expenses = EXPENSES;
 
   readonly filters = [
-    { key: 'todos', label: 'Todos' },
-    { key: 'pendiente', label: 'Pendientes' },
-    { key: 'repartido', label: 'Repartidos' },
-    { key: 'liquidado', label: 'Liquidados' },
+    { key: 'todos', labelKey: 'expenses.filters.all' },
+    { key: 'pending', labelKey: 'expenses.filters.pending' },
+    { key: 'split', labelKey: 'expenses.filters.split' },
+    { key: 'settled', labelKey: 'expenses.filters.settled' },
   ];
 
   activeFilter = 'todos';
@@ -54,16 +59,16 @@ export class ExpenseListComponent {
   }
 
   categoryLabel(key: string): string {
-    return CATEGORIES.find((c) => c.key === key)?.label ?? 'Otros';
+    return CATEGORIES.find((c) => c.key === key)?.labelKey ?? 'common.other';
   }
 
   statusTone(status: string): 'positive' | 'warning' | 'neutral' {
-    if (status === 'liquidado') return 'positive';
-    if (status === 'pendiente') return 'warning';
+    if (status === 'settled') return 'positive';
+    if (status === 'pending') return 'warning';
     return 'neutral';
   }
 
-  trackExpense(_: number, e: any): string {
+  trackExpense(_: number, e: { id: string }): string {
     return e.id;
   }
 }
