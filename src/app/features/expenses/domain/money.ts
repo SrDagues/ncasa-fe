@@ -26,11 +26,18 @@ export class Money {
   }
 
   isPositive(): boolean { return this.minorUnits > 0n; }
+  isNegative(): boolean { return this.minorUnits < 0n; }
+  isZero(): boolean { return this.minorUnits === 0n; }
 
   add(other: Money): Money {
     this.requireSameCurrency(other);
     return Money.fromMinorUnits(this.minorUnits + other.minorUnits, this.currency);
   }
+
+  subtract(other: Money): Money { this.requireSameCurrency(other); return Money.fromMinorUnits(this.minorUnits - other.minorUnits, this.currency); }
+  negate(): Money { return Money.fromMinorUnits(-this.minorUnits, this.currency); }
+  absolute(): Money { return this.isNegative() ? this.negate() : this; }
+  compare(other: Money): number { this.requireSameCurrency(other); return this.minorUnits < other.minorUnits ? -1 : this.minorUnits > other.minorUnits ? 1 : 0; }
 
   equals(other: Money): boolean {
     return this.currency === other.currency && this.minorUnits === other.minorUnits;

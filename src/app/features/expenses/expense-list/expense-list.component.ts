@@ -23,6 +23,8 @@ export class ExpenseListComponent {
   protected readonly status = signal<ExpenseStatus>('CONFIRMED');
   protected readonly from = signal('');
   protected readonly to = signal('');
+  protected readonly payerMemberId = signal('');
+  protected readonly participantMemberId = signal('');
   protected readonly page = signal(0);
   protected readonly dateError = signal(false);
 
@@ -30,6 +32,7 @@ export class ExpenseListComponent {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.status.set(params.get('status') === 'VOIDED' ? 'VOIDED' : 'CONFIRMED');
       this.from.set(params.get('from') ?? ''); this.to.set(params.get('to') ?? '');
+      this.payerMemberId.set(params.get('payerMemberId') ?? ''); this.participantMemberId.set(params.get('participantMemberId') ?? '');
       this.page.set(Math.max(0, Number(params.get('page')) || 0)); this.reload();
     });
     effect(() => { this.household.active()?.id; this.reload(); });
@@ -46,11 +49,15 @@ export class ExpenseListComponent {
   protected reload(): void {
     const householdId = this.household.active()?.id;
     if (!householdId) { this.store.reset(); return; }
-    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined }, this.page());
+    const members = this.household.active()?.members ?? [];
+    const payer = members.some(member => member.id === this.payerMemberId()) ? this.payerMemberId() : undefined;
+    const participant = members.some(member => member.id === this.participantMemberId()) ? this.participantMemberId() : undefined;
+    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined, payerMemberId: payer, participantMemberId: participant }, this.page());
   }
   private navigate(page: number): Promise<boolean> {
     return this.router.navigate([], { relativeTo: this.route, queryParams: {
       status: this.status(), from: this.from() || null, to: this.to() || null, page: page || null,
+      payerMemberId: this.payerMemberId() || null, participantMemberId: this.participantMemberId() || null,
     }, queryParamsHandling: 'merge' });
   }
 }

@@ -3,6 +3,7 @@
     <div><h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'expenses.title' | translate }}</h1><p class="mt-1 text-sm text-ncasa-muted">{{ 'expenses.subtitle' | translate }}</p></div>
     @if (household.active()) { <a routerLink="new"><app-button variant="primary" icon="plus">{{ 'expenses.add' | translate }}</app-button></a> }
   </header>
+  <nav class="flex gap-2" [attr.aria-label]="'expenseSections.label' | translate"><a routerLink="/app/expenses" aria-current="page" class="rounded-xl bg-ncasa-forest px-4 py-2 text-ncasa-cream">{{'expenseSections.history'|translate}}</a><a routerLink="/app/expenses/balances" class="rounded-xl px-4 py-2">{{'expenseSections.balances'|translate}}</a><a routerLink="/app/expenses/settlements" class="rounded-xl px-4 py-2">{{'expenseSections.settlements'|translate}}</a></nav>
   @if (household.state() === 'initial' || household.state() === 'loading') {
     <app-card><p role="status">{{ 'expenses.loadingHousehold' | translate }}</p></app-card>
   } @else if (!household.active()) {
@@ -13,9 +14,11 @@
         <button type="button" class="rounded-xl px-4 py-2 text-sm font-medium" [class.bg-ncasa-forest]="status() === 'CONFIRMED'" [class.text-ncasa-cream]="status() === 'CONFIRMED'" (click)="changeStatus('CONFIRMED')">{{ 'expenses.filters.confirmed' | translate }}</button>
         <button type="button" class="rounded-xl px-4 py-2 text-sm font-medium" [class.bg-ncasa-forest]="status() === 'VOIDED'" [class.text-ncasa-cream]="status() === 'VOIDED'" (click)="changeStatus('VOIDED')">{{ 'expenses.filters.voided' | translate }}</button>
       </div>
-      <div class="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      <div class="grid items-end gap-3 sm:grid-cols-3">
         <label class="text-sm font-medium">{{ 'expenses.filters.from' | translate }}<input type="date" class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-3" [value]="from()" (input)="from.set($any($event.target).value)" /></label>
         <label class="text-sm font-medium">{{ 'expenses.filters.to' | translate }}<input type="date" class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-3" [value]="to()" (input)="to.set($any($event.target).value)" /></label>
+        <label class="text-sm font-medium">{{'expenseSections.payer'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="payerMemberId()" (change)="payerMemberId.set($any($event.target).value)"><option value="">{{'expenseSections.allMembers'|translate}}</option>@for(member of household.active()?.members??[];track member.id){<option [value]="member.id">{{memberName(member.id)}}</option>}</select></label>
+        <label class="text-sm font-medium">{{'expenseSections.participant'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="participantMemberId()" (change)="participantMemberId.set($any($event.target).value)"><option value="">{{'expenseSections.allMembers'|translate}}</option>@for(member of household.active()?.members??[];track member.id){<option [value]="member.id">{{memberName(member.id)}}</option>}</select></label>
         <app-button variant="secondary" (click)="applyFilters()">{{ 'expenses.filters.apply' | translate }}</app-button>
       </div>
       @if (dateError()) { <p class="text-sm text-ncasa-error" role="alert">{{ 'expenses.filters.dateError' | translate }}</p> }

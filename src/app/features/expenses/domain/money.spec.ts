@@ -32,4 +32,11 @@ describe('Money and expense splits', () => {
       { memberId: 'm1', amount: Money.fromDecimal('9.00', 'EUR') },
     ])).toThrow(ExpenseSplitError);
   });
+  it('operates on signed values without losing minor units', () => {
+    const credit = Money.fromDecimal('10.01', 'EUR'); const debt = Money.fromDecimal('-3.34', 'EUR');
+    expect(credit.add(debt).toDecimal()).toBe('6.67');
+    expect(credit.subtract(Money.fromDecimal('0.02', 'EUR')).toDecimal()).toBe('9.99');
+    expect(debt.absolute().toDecimal()).toBe('3.34'); expect(debt.negate().isPositive()).toBe(true);
+    expect(Money.fromDecimal('0', 'EUR').isZero()).toBe(true); expect(debt.compare(credit)).toBe(-1);
+  });
 });

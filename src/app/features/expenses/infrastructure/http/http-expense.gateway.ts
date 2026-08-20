@@ -13,6 +13,8 @@ export class HttpExpenseGateway implements ExpenseGateway {
     let params = new HttpParams().set('status', filters.status).set('page', pagination.page).set('size', pagination.size);
     if (filters.from) params = params.set('from', filters.from);
     if (filters.to) params = params.set('to', filters.to);
+    if (filters.payerMemberId) params = params.set('payerMemberId', filters.payerMemberId);
+    if (filters.participantMemberId) params = params.set('participantMemberId', filters.participantMemberId);
     return this.http.get<unknown>(this.collection(householdId), { params }).pipe(map(mapExpensePage), this.errors());
   }
 

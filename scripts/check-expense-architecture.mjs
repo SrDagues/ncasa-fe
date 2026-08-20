@@ -19,6 +19,9 @@ for (const file of files) {
       violations.push(`${path}: application cannot import ${dependency}`);
     }
   }
+  if (!path.startsWith('infrastructure/') && /api(?:-|\.)?(?:dto|mapper)|http-/i.test(source)) {
+    violations.push(`${path}: HTTP DTOs and adapters belong to infrastructure`);
+  }
   for (const dependency of imports.filter(value => value.includes('/features/') && !value.includes('/features/expenses'))) {
     violations.push(`${path}: import other features through their public index: ${dependency}`);
   }
