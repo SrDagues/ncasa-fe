@@ -15,6 +15,13 @@ const household: Household = {
     role: 'ADMIN', status: 'ACTIVE', owner: true, joinedAt: '2026-08-20T10:00:00Z',
     statusChangedAt: '2026-08-20T10:00:00Z' }],
 };
+const secondSummary: HouseholdSummary = { ...summary, id: 'h2', name: 'Casa del pueblo', currentMemberId: 'm2', owner: false };
+const secondHousehold: Household = {
+  ...household, id: 'h2', name: 'Casa del pueblo', ownerMemberId: 'owner', members: [
+    { ...household.members[0], id: 'm2', role: 'MEMBER', owner: false },
+    { ...household.members[0], id: 'owner', accountId: 2, email: 'other@example.com', owner: true },
+  ],
+};
 
 describe('HouseholdStore', () => {
   let application: {
@@ -55,6 +62,17 @@ describe('HouseholdStore', () => {
     const store = TestBed.inject(HouseholdStore);
     await store.initialize(1);
     expect(store.state()).toBe('empty');
+  });
+
+  it('loads the members of the household selected inside the household view', async () => {
+    application.list = () => of([summary, secondSummary]);
+    application.get = id => of(id === 'h2' ? secondHousehold : household);
+    const store = TestBed.inject(HouseholdStore);
+    await store.initialize(1);
+    await store.select('h2');
+    expect(store.active()?.name).toBe('Casa del pueblo');
+    expect(store.members().map(member => member.email)).toEqual(['owner@example.com', 'other@example.com']);
+    expect(selected).toBe('h2');
   });
 
   it('keeps a saved invitation visible as a delivery warning when SMTP fails', async () => {

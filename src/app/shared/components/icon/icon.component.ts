@@ -31,6 +31,7 @@ export class IconComponent {
     'chevron-left': ['m15 18-6-6 6-6'],
     'chevron-right': ['m9 18 6-6-6-6'],
     'chevron-down': ['m6 9 6 6 6-6'],
+    'ellipsis-vertical': ['M12 5h.01M12 12h.01M12 19h.01'],
     'arrow-left': ['M19 12H5m7-7-7 7 7 7'],
     'arrow-right': ['M5 12h14m-7-7 7 7-7 7'],
     'arrow-up-right': ['M7 17 17 7M7 7h10v10'],

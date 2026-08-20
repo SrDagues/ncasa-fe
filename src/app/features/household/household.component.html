@@ -2,9 +2,6 @@
   @if (store.state() === 'loading' || store.state() === 'initial') {
     <app-card><p role="status" class="text-sm text-ncasa-muted">{{ 'household.loading' | translate }}</p></app-card>
   } @else {
-    @if (store.error(); as error) { <app-alert tone="error">{{ ('household.errors.' + error.kind) | translate }}</app-alert> }
-    @if (store.deliveryWarning()) { <app-alert tone="warning">{{ 'householdDeliveryWarning' | translate }}</app-alert> }
-
     @if (store.receivedInvitations().length) {
       <app-card tone="sage">
         <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.receivedInvites' | translate }}</h2>
@@ -37,15 +34,12 @@
         </form>
       </app-card>
     } @else if (store.active(); as household) {
-      <header class="flex flex-wrap items-center gap-4">
-        <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-ncasa-forest text-ncasa-cream"><lucide-icon name="home" [size]="26" aria-hidden="true" /></span>
-        <div class="min-w-0 flex-1">
-          <h1 class="truncate text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ household.name }}</h1>
-          <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.summary' | translate: { members: store.members().length, invites: store.sentInvitations().length } }}</p>
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'householdListTitle' | translate }}</h1>
+          <p class="mt-1 text-sm text-ncasa-muted">{{ 'householdListDescription' | translate }}</p>
         </div>
         <app-button variant="secondary" size="sm" icon="plus" (click)="showCreateForm = !showCreateForm">{{ 'householdNew' | translate }}</app-button>
-        @if (store.capabilities().canLeave) { <app-button variant="destructive" size="sm" (click)="leave()">{{ 'household.leave' | translate }}</app-button> }
-        @if (store.capabilities().canArchive) { <app-button variant="destructive" size="sm" (click)="archive()">{{ 'household.archive' | translate }}</app-button> }
       </header>
 
       @if (showCreateForm) {
@@ -63,6 +57,43 @@
         </app-card>
       }
 
+      @if (store.households().length > 1) {
+        <app-card padding="none">
+          <nav [attr.aria-label]="'householdListTitle' | translate">
+            <ul [class]="householdListClasses()">
+              @for (item of store.households(); track item.id) {
+                <li>
+                  <button type="button" (click)="selectHousehold(item.id)" [disabled]="store.pendingOperation() === 'select'"
+                    [attr.aria-current]="household.id === item.id ? 'true' : null"
+                    [class.bg-ncasa-sage-soft]="household.id === item.id"
+                    class="flex min-h-24 w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ncasa-forest disabled:cursor-wait disabled:opacity-70">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ncasa-forest text-ncasa-cream"><lucide-icon name="home" [size]="20" aria-hidden="true" /></span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-semibold text-ncasa-charcoal">{{ item.name }}</span>
+                      <span class="mt-1 flex flex-wrap items-center gap-1 text-xs text-ncasa-muted">
+                        {{ ('household.roles.' + item.currentRole.toLowerCase()) | translate }}
+                        @if (item.owner) { <span>· {{ 'household.owner' | translate }}</span> }
+                      </span>
+                    </span>
+                    @if (household.id === item.id) { <lucide-icon name="check" [size]="18" class="text-ncasa-forest" aria-hidden="true" /> }
+                  </button>
+                </li>
+              }
+            </ul>
+          </nav>
+        </app-card>
+      }
+
+      <header class="flex flex-wrap items-center gap-4">
+        <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-ncasa-forest text-ncasa-cream"><lucide-icon name="home" [size]="26" aria-hidden="true" /></span>
+        <div class="min-w-0 flex-1">
+          <h1 class="truncate text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ household.name }}</h1>
+          <p class="mt-1 text-sm text-ncasa-muted">{{ 'household.summary' | translate: { members: store.members().length, invites: store.sentInvitations().length } }}</p>
+        </div>
+        @if (store.capabilities().canLeave) { <app-button variant="destructive" size="sm" (click)="leave()">{{ 'household.leave' | translate }}</app-button> }
+        @if (store.capabilities().canArchive) { <app-button variant="destructive" size="sm" (click)="archive()">{{ 'household.archive' | translate }}</app-button> }
+      </header>
+
       @if (store.capabilities().canRename) {
         <app-card><form (submit)="$event.preventDefault(); rename()" class="flex flex-col gap-3 sm:flex-row">
           <label class="flex-1 text-sm font-medium text-ncasa-charcoal">{{ 'household.rename' | translate }}
@@ -78,16 +109,28 @@
           <div class="border-b border-ncasa-border px-5 py-4"><h2 class="font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2></div>
           <ul class="divide-y divide-ncasa-border">
             @for (member of store.members(); track member.id) {
-              <li class="flex flex-wrap items-center gap-3 px-5 py-4">
+              <li class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-4">
                 <app-avatar [initials]="initials(member.email)" [name]="memberLabel(member)" size="lg" />
                 <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ncasa-charcoal">{{ memberLabel(member) }}</p>
                   <app-badge [tone]="member.role === 'ADMIN' ? 'forest' : 'neutral'">{{ ('household.roles.' + member.role.toLowerCase()) | translate }}@if (member.owner) { · {{ 'household.owner' | translate }}}</app-badge>
                 </div>
-                @if (store.capabilities().canManageRoles && !member.owner) {
-                  <app-button size="sm" variant="tertiary" (click)="toggleRole(member)">{{ 'household.changeRole' | translate }}</app-button>
-                  <app-button size="sm" variant="tertiary" (click)="transfer(member)">{{ 'household.transfer' | translate }}</app-button>
+                @if ((store.capabilities().canManageRoles && !member.owner) || canRemove(member)) {
+                  <details #memberActions data-member-actions class="relative">
+                    <summary [attr.aria-label]="'householdMemberActions' | translate: { member: memberLabel(member) }"
+                      class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl text-ncasa-forest transition-colors hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest [&::-webkit-details-marker]:hidden">
+                      <lucide-icon name="ellipsis-vertical" [size]="20" aria-hidden="true" />
+                    </summary>
+                    <div class="absolute right-0 z-10 mt-2 w-52 overflow-hidden rounded-xl border border-ncasa-border bg-ncasa-surface p-1.5 shadow-xl">
+                      @if (store.capabilities().canManageRoles && !member.owner) {
+                        <button type="button" (click)="memberActions.open = false; toggleRole(member)" class="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-medium text-ncasa-charcoal hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest">{{ 'household.changeRole' | translate }}</button>
+                        <button type="button" (click)="memberActions.open = false; transfer(member)" class="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-medium text-ncasa-charcoal hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest">{{ 'household.transfer' | translate }}</button>
+                      }
+                      @if (canRemove(member)) {
+                        <button type="button" (click)="memberActions.open = false; remove(member)" class="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-medium text-ncasa-error hover:bg-ncasa-error/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-error">{{ 'household.remove' | translate }}</button>
+                      }
+                    </div>
+                  </details>
                 }
-                @if (canRemove(member)) { <app-button size="sm" variant="destructive" (click)="remove(member)">{{ 'household.remove' | translate }}</app-button> }
               </li>
             }
           </ul>
@@ -96,7 +139,7 @@
               @for (invitation of store.sentInvitations(); track invitation.id) {
                 <div class="flex items-center gap-3 py-2"><lucide-icon name="mail" [size]="16" aria-hidden="true" />
                   <span class="min-w-0 flex-1 truncate text-sm">{{ invitation.email }} · {{ ('household.roles.' + invitation.role.toLowerCase()) | translate }}</span>
-                  <app-button size="sm" variant="tertiary" (click)="cancel(invitation.id)">{{ 'common.cancel' | translate }}</app-button>
+                  <app-button size="sm" variant="tertiary" (click)="cancel(invitation)">{{ 'common.cancel' | translate }}</app-button>
                 </div>
               }
             </div>

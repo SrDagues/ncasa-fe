@@ -118,6 +118,12 @@ export class HouseholdStore {
   async leave(): Promise<boolean> { const id = this.requireActive(); return id ? this.removeCurrent('leave', () => firstValueFrom(this.application.leave(id))) : false; }
   async archive(): Promise<boolean> { const id = this.requireActive(); return id ? this.removeCurrent('archive', () => firstValueFrom(this.application.archive(id))) : false; }
 
+  clearError(expected?: HouseholdApplicationError): void {
+    if (!expected || this.errorValue() === expected) this.errorValue.set(null);
+  }
+
+  clearDeliveryWarning(): void { this.deliveryWarningValue.set(false); }
+
   reset(): void {
     this.accountId = null; this.householdsValue.set([]); this.activeValue.set(null); this.receivedValue.set([]);
     this.sentValue.set([]); this.errorValue.set(null); this.stateValue.set('initial');

@@ -1,0 +1,22 @@
+<section [attr.aria-label]="'notifications.label' | translate" class="pointer-events-none fixed inset-x-4 top-20 z-[60] flex flex-col gap-3 sm:left-auto sm:right-6 sm:w-96">
+  @for (item of notifications.notifications(); track item.id) {
+    <article
+      [class]="classes(item)"
+      [attr.role]="item.tone === 'error' ? 'alert' : 'status'"
+      [attr.aria-live]="item.tone === 'error' ? 'assertive' : 'polite'"
+    >
+      <lucide-icon [name]="icon(item)" [size]="20" class="mt-0.5 shrink-0" aria-hidden="true" />
+      <div class="min-w-0 flex-1 text-sm">
+        <p class="leading-5 text-current">{{ item.message }}</p>
+        @if (item.action) {
+          <button type="button" data-notification-action (click)="notifications.runAction(item)" class="mt-2 min-h-9 rounded-lg px-2 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current">
+            {{ item.action.label }}
+          </button>
+        }
+      </div>
+      <button type="button" (click)="notifications.dismiss(item.id)" [attr.aria-label]="'notifications.close' | translate" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current">
+        <lucide-icon name="x" [size]="18" aria-hidden="true" />
+      </button>
+    </article>
+  }
+</section>

@@ -1,0 +1,19 @@
+<dialog
+  #dialog
+  (cancel)="cancel($event)"
+  (click)="backdrop($event)"
+  aria-labelledby="confirm-dialog-title"
+  aria-describedby="confirm-dialog-message"
+  class="inset-x-0 bottom-0 top-auto m-0 w-full max-w-none rounded-t-3xl border-0 bg-ncasa-surface p-0 text-ncasa-charcoal shadow-2xl backdrop:bg-ncasa-charcoal/45 sm:inset-0 sm:m-auto sm:max-w-md sm:rounded-3xl"
+>
+  @if (dialogs.request(); as request) {
+    <section class="p-6 sm:p-7">
+      <h2 id="confirm-dialog-title" class="text-xl font-semibold text-ncasa-forest">{{ request.title }}</h2>
+      <p id="confirm-dialog-message" class="mt-2 text-sm leading-6 text-ncasa-muted">{{ request.message }}</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <app-button #cancelButton data-cancel variant="secondary" [fullWidth]="true" (click)="cancel()">{{ request.cancelLabel }}</app-button>
+        <app-button data-confirm [variant]="request.variant" [fullWidth]="true" (click)="confirm()">{{ request.confirmLabel }}</app-button>
+      </div>
+    </section>
+  }
+</dialog>
