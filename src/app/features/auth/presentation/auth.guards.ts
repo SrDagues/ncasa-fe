@@ -1,14 +1,14 @@
 import { inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable, filter, map, take } from 'rxjs';
 import { AuthenticationStatus } from '../domain/auth.models';
 import { AuthStore } from './auth.store';
 
 type GuardResult = boolean | UrlTree | Observable<boolean | UrlTree>;
 
-export function authGuard(): GuardResult {
-  return decide('authenticated', '/login');
+export function authGuard(_route?: ActivatedRouteSnapshot, state?: RouterStateSnapshot): GuardResult {
+  return decide('authenticated', state ? `/login?returnUrl=${encodeURIComponent(state.url)}` : '/login');
 }
 
 export function guestGuard(): GuardResult {

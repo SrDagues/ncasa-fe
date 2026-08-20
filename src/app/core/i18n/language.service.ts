@@ -41,12 +41,12 @@ export class LanguageService {
     this.meta.updateTag({ name: 'description', content: this.translate.instant('metadata.description') });
 
     if (persist) {
-      this.document.defaultView?.localStorage.setItem(STORAGE_KEY, language);
+      this.document.defaultView?.localStorage?.setItem(STORAGE_KEY, language);
     }
   }
 
   private readStoredLanguage(): SupportedLanguage | null {
-    const language = this.document.defaultView?.localStorage.getItem(STORAGE_KEY);
+    const language = this.document.defaultView?.localStorage?.getItem(STORAGE_KEY);
     return isSupportedLanguage(language) ? language : null;
   }
 }

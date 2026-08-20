@@ -58,7 +58,7 @@
           </app-form-field>
 
           <app-form-field [label]="'expenses.form.paidBy' | translate" fieldId="paidBy">
-            <app-select id="paidBy" [options]="memberOptions" [value]="paidBy"></app-select>
+            <app-select id="paidBy" [options]="memberOptions()" [value]="paidBy"></app-select>
           </app-form-field>
         </div>
       </div>
@@ -90,9 +90,9 @@
         <p class="mb-2 text-sm font-medium text-ncasa-charcoal">{{ 'expenses.form.between' | translate }}</p>
         <div class="flex flex-col gap-1">
           <app-checkbox
-            *ngFor="let m of members"
+            *ngFor="let m of members()"
             [checked]="isIncluded(m.id)"
-            [label]="m.name"
+            [label]="m.email || ('household.unknownAccount' | translate)"
             (checkedChange)="toggleMember(m.id, $event)"
           ></app-checkbox>
         </div>

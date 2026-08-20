@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -9,8 +9,9 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { SelectComponent } from '../../../shared/components/select/select.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
-import { CATEGORIES, MEMBERS } from '../../../core/demo-content';
+import { CATEGORIES } from '..';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { HouseholdStore } from '../../household';
 
 @Component({
   selector: 'app-expense-form',
@@ -33,8 +34,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 export class ExpenseFormComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly household = inject(HouseholdStore);
   readonly isTicketMode: boolean;
-  readonly members = MEMBERS;
+  readonly members = this.household.members;
 
   concept = '';
   amount = '';
@@ -42,7 +44,7 @@ export class ExpenseFormComponent {
   paidBy = 'm1';
   date = '';
   splitType = 'igual';
-  includedIds = new Set<string>(MEMBERS.map((m) => m.id));
+  includedIds = new Set<string>();
 
   readonly categoryOptions = computed(() => {
     this.translate.currentLang();
@@ -52,10 +54,7 @@ export class ExpenseFormComponent {
     }));
   });
 
-  readonly memberOptions = MEMBERS.map((m) => ({
-    value: m.id,
-    label: m.name,
-  }));
+  readonly memberOptions = computed(() => this.members().map((m) => ({ value: m.id, label: m.email ?? `#${m.accountId}` })));
 
   readonly splitOptions = [
     { key: 'igual', labelKey: 'expenses.form.splitOptions.equal' },
@@ -71,6 +70,11 @@ export class ExpenseFormComponent {
       this.amount = '48.20';
       this.category = 'supermercado';
     }
+    effect(() => {
+      const members = this.members();
+      this.includedIds = new Set(members.map(member => member.id));
+      this.paidBy = members[0]?.id ?? '';
+    });
   }
 
   isIncluded(id: string): boolean {

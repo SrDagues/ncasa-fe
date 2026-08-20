@@ -2,9 +2,9 @@
   <!-- Greeting -->
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <p class="text-sm text-ncasa-muted">{{ 'demo.household' | translate }}</p>
+      <p class="text-sm text-ncasa-muted">{{ householdName() }}</p>
       <h1 class="mt-1 text-2xl font-semibold text-ncasa-forest sm:text-3xl">
-        {{ 'dashboard.hello' | translate: { name: currentMember.name } }}
+        {{ 'dashboard.hello' | translate: { name: currentUserEmail() } }}
       </h1>
     </div>
     <a routerLink="/app/expenses/new">
@@ -21,10 +21,10 @@
       icon="chart-pie"
     ></app-stat-card>
     <app-stat-card
-      [label]="'dashboard.yourBalance' | translate"
-      [value]="currentMember.balance | localizedCurrency"
-      [caption]="'dashboard.owedToYou' | translate"
-      icon="piggy-bank"
+      [label]="'household.members' | translate"
+      [value]="members().length.toString()"
+      [caption]="householdName()"
+      icon="users"
       tone="positive"
     ></app-stat-card>
     <app-stat-card
@@ -40,24 +40,19 @@
     <!-- Balances -->
     <app-card padding="none" class="lg:col-span-3">
       <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.balances' | translate }}</h2>
+        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2>
         <a routerLink="/app/household" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
           {{ 'dashboard.viewHousehold' | translate }}
         </a>
       </div>
       <ul class="divide-y divide-ncasa-border">
-        <li *ngFor="let m of members" class="flex items-center gap-3 px-5 py-3.5">
-          <app-avatar [initials]="m.initials" [name]="m.name" [color]="m.color" size="md"></app-avatar>
+        <li *ngFor="let m of members()" class="flex items-center gap-3 px-5 py-3.5">
+          <app-avatar [initials]="(m.email || '?').slice(0, 2).toUpperCase()" [name]="m.email || ''" size="md"></app-avatar>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.name }}</p>
-            <p class="text-xs text-ncasa-muted">{{ (m.balance >= 0 ? 'dashboard.isOwed' : 'dashboard.owes') | translate }}</p>
+            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.email || ('household.unknownAccount' | translate) }}</p>
+            <p class="text-xs text-ncasa-muted">{{ ('household.roles.' + m.role.toLowerCase()) | translate }}</p>
           </div>
-          <span
-            class="text-sm font-semibold tabular"
-            [ngClass]="m.balance >= 0 ? 'text-ncasa-forest' : 'text-ncasa-coral-dark'"
-          >
-            {{ m.balance >= 0 ? '+' : '−' }}{{ absAmount(m.balance) | localizedCurrency }}
-          </span>
+          <app-badge *ngIf="m.owner" tone="forest">{{ 'household.owner' | translate }}</app-badge>
         </li>
       </ul>
     </app-card>

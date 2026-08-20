@@ -26,10 +26,10 @@
 
     <div class="border-t border-ncasa-border p-3">
       <div class="flex items-center gap-3 rounded-xl px-3 py-2">
-        <app-avatar initials="DA" name="Dani" color="bg-ncasa-forest text-ncasa-cream" size="md"></app-avatar>
+        <app-avatar [initials]="userInitials()" [name]="user()?.email || ''" color="bg-ncasa-forest text-ncasa-cream" size="md"></app-avatar>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-ncasa-charcoal">Dani</p>
-          <p class="truncate text-xs text-ncasa-muted">{{ 'demo.household' | translate }}</p>
+          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ user()?.email }}</p>
+          <p class="truncate text-xs text-ncasa-muted">{{ household.active()?.name || ('household.noHousehold' | translate) }}</p>
         </div>
         <button
           type="button"
@@ -59,16 +59,19 @@
       <div class="flex items-center gap-2">
         <app-language-switcher />
         <app-icon-button icon="bell" [label]="'layout.notifications' | translate" variant="secondary"></app-icon-button>
-        <a
-          routerLink="/app/household"
-          class="inline-flex h-11 items-center gap-2 rounded-xl border border-ncasa-border bg-ncasa-surface px-3 text-sm font-medium text-ncasa-forest transition-colors hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"
-        >
+        <div class="inline-flex h-11 items-center gap-2 rounded-xl border border-ncasa-border bg-ncasa-surface px-3 text-sm font-medium text-ncasa-forest">
           <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-ncasa-sage-soft">
             <lucide-icon name="home" [size]="14" aria-hidden="true"></lucide-icon>
           </span>
-          <span class="hidden sm:inline">{{ 'demo.household' | translate }}</span>
-          <lucide-icon name="chevron-down" [size]="16" class="text-ncasa-muted" aria-hidden="true"></lucide-icon>
-        </a>
+          @if (household.households().length > 1) {
+            <label class="sr-only" for="active-household">{{ 'household.select' | translate }}</label>
+            <select id="active-household" [value]="household.active()?.id || ''" (change)="changeHousehold($event)" class="max-w-40 bg-transparent outline-none">
+              @for (item of household.households(); track item.id) { <option [value]="item.id">{{ item.name }}</option> }
+            </select>
+          } @else {
+            <a routerLink="/app/household" class="hidden max-w-40 truncate rounded sm:inline focus-visible:ring-2 focus-visible:ring-ncasa-forest">{{ household.active()?.name || ('household.noHousehold' | translate) }}</a>
+          }
+        </div>
       </div>
     </header>
 
