@@ -1,74 +1,56 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { BadgeComponent } from '../../../shared/components/badge/badge.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { FilterChipComponent } from '../../../shared/components/filter-chip/filter-chip.component';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { CATEGORIES, EXPENSES } from '..';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../../core/i18n/localized-format.pipe';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { HouseholdStore } from '../../household';
+import { ExpenseStatus } from '../domain';
+import { ExpenseListStore } from '../presentation/list/expense-list.store';
 
-@Component({
-  selector: 'app-expense-list',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IconComponent,
-    CardComponent,
-    BadgeComponent,
-    ButtonComponent,
-    FilterChipComponent,
-    EmptyStateComponent,
-    TranslatePipe,
-    LocalizedCurrencyPipe,
-    LocalizedDatePipe,
-  ],
-  templateUrl: './expense-list.component.html',
-})
+@Component({ selector: 'app-expense-list', standalone: true,
+  imports: [RouterLink, TranslatePipe, LocalizedCurrencyPipe, LocalizedDatePipe, ButtonComponent, CardComponent, EmptyStateComponent, IconComponent],
+  templateUrl: './expense-list.component.html' })
 export class ExpenseListComponent {
-  readonly expenses = EXPENSES;
+  protected readonly household = inject(HouseholdStore);
+  protected readonly store = inject(ExpenseListStore);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly status = signal<ExpenseStatus>('CONFIRMED');
+  protected readonly from = signal('');
+  protected readonly to = signal('');
+  protected readonly page = signal(0);
+  protected readonly dateError = signal(false);
 
-  readonly filters = [
-    { key: 'todos', labelKey: 'expenses.filters.all' },
-    { key: 'pending', labelKey: 'expenses.filters.pending' },
-    { key: 'split', labelKey: 'expenses.filters.split' },
-    { key: 'settled', labelKey: 'expenses.filters.settled' },
-  ];
-
-  activeFilter = 'todos';
-
-  setFilter(key: string) {
-    this.activeFilter = key;
+  constructor() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.status.set(params.get('status') === 'VOIDED' ? 'VOIDED' : 'CONFIRMED');
+      this.from.set(params.get('from') ?? ''); this.to.set(params.get('to') ?? '');
+      this.page.set(Math.max(0, Number(params.get('page')) || 0)); this.reload();
+    });
+    effect(() => { this.household.active()?.id; this.reload(); });
   }
 
-  get filtered() {
-    if (this.activeFilter === 'todos') return this.expenses;
-    return this.expenses.filter((e) => e.status === this.activeFilter);
+  protected applyFilters(): void {
+    this.dateError.set(Boolean(this.from() && this.to() && this.from() > this.to()));
+    if (!this.dateError()) void this.navigate(0);
   }
-
-  get totalFiltered(): number {
-    return this.filtered.reduce((s, e) => s + e.amount, 0);
+  protected changeStatus(status: ExpenseStatus): void { this.status.set(status); void this.navigate(0); }
+  protected previous(): void { if (this.page() > 0) void this.navigate(this.page() - 1); }
+  protected next(): void { if ((this.store.result()?.totalPages ?? 0) > this.page() + 1) void this.navigate(this.page() + 1); }
+  protected memberName(id: string): string { return this.household.active()?.members.find(member => member.id === id)?.email ?? `${id.slice(0, 8)}…`; }
+  protected reload(): void {
+    const householdId = this.household.active()?.id;
+    if (!householdId) { this.store.reset(); return; }
+    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined }, this.page());
   }
-
-  categoryIcon(key: string): string {
-    return CATEGORIES.find((c) => c.key === key)?.icon ?? 'tag';
-  }
-
-  categoryLabel(key: string): string {
-    return CATEGORIES.find((c) => c.key === key)?.labelKey ?? 'common.other';
-  }
-
-  statusTone(status: string): 'positive' | 'warning' | 'neutral' {
-    if (status === 'settled') return 'positive';
-    if (status === 'pending') return 'warning';
-    return 'neutral';
-  }
-
-  trackExpense(_: number, e: { id: string }): string {
-    return e.id;
+  private navigate(page: number): Promise<boolean> {
+    return this.router.navigate([], { relativeTo: this.route, queryParams: {
+      status: this.status(), from: this.from() || null, to: this.to() || null, page: page || null,
+    }, queryParamsHandling: 'merge' });
   }
 }

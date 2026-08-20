@@ -1,0 +1,33 @@
+<section class="mx-auto flex max-w-3xl flex-col gap-6">
+  <header class="flex items-center gap-3"><a routerLink="/app/expenses" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ncasa-border" [attr.aria-label]="'expenses.form.back' | translate"><lucide-icon name="arrow-left" [size]="20" aria-hidden="true" /></a><h1 class="text-2xl font-semibold text-ncasa-forest">{{ 'expenses.detail.title' | translate }}</h1></header>
+  @if (store.state() === 'loading') { <app-card><p role="status">{{ 'expenses.loading' | translate }}</p></app-card>
+  } @else if (store.state() === 'error') {
+    <app-empty-state icon="triangle-alert" [title]="(store.error()?.kind === 'not-found' ? 'expenses.detail.notFound' : store.error()?.kind === 'forbidden' ? 'expenses.detail.forbidden' : 'expenses.errorTitle') | translate" [description]="'expenses.errorDescription' | translate">
+      @if (store.error()?.kind !== 'not-found' && store.error()?.kind !== 'forbidden') { <app-button variant="secondary" (click)="retry()">{{ 'common.retry' | translate }}</app-button> } @else { <a routerLink="/app/expenses"><app-button variant="secondary">{{ 'expenses.form.back' | translate }}</app-button></a> }
+    </app-empty-state>
+  } @else if (store.expense(); as expense) {
+    <app-card tone="forest"><div class="flex items-start justify-between gap-4"><div><p class="text-sm text-ncasa-cream/70">{{ expense.expenseDate | localizedDate }}</p><h2 class="mt-1 text-xl font-semibold text-ncasa-cream">{{ expense.description }}</h2></div><p class="text-2xl font-semibold text-ncasa-cream">{{ expense.amount | localizedCurrency }}</p></div></app-card>
+    <app-card><dl class="grid gap-5 sm:grid-cols-2">
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenses.detail.status' | translate }}</dt><dd class="font-medium">{{ ('expenses.status.' + expense.status.toLowerCase()) | translate }}</dd></div>
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenses.form.paidBy' | translate }}</dt><dd class="font-medium">{{ memberName(expense.payerMemberId) }}</dd></div>
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenses.detail.createdBy' | translate }}</dt><dd class="font-medium">{{ memberName(expense.createdByMemberId) }}</dd></div>
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenses.detail.source' | translate }}</dt><dd class="font-medium">{{ ('expenses.source.' + expense.source.toLowerCase()) | translate }}</dd></div>
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenseCreatedAt' | translate }}</dt><dd class="font-medium">{{ expense.createdAt.slice(0, 10) | localizedDate }}</dd></div>
+      <div><dt class="text-xs text-ncasa-muted">{{ 'expenseUpdatedAt' | translate }}</dt><dd class="font-medium">{{ expense.updatedAt.slice(0, 10) | localizedDate }}</dd></div>
+    </dl></app-card>
+    <app-card><h2 class="font-semibold text-ncasa-forest">{{ 'expenses.detail.allocations' | translate }}</h2><p class="mt-1 text-sm text-ncasa-muted">{{ ('expenses.splitType.' + expense.splitType.toLowerCase()) | translate }}</p>
+      <ul class="mt-4 divide-y divide-ncasa-border">@for (allocation of expense.allocations; track allocation.memberId) { <li class="flex justify-between py-3"><span>{{ memberName(allocation.memberId) }}</span><strong>{{ allocation.amount | localizedCurrency }}</strong></li> }</ul>
+    </app-card>
+    @if (expense.status === 'VOIDED') { <app-card><h2 class="font-semibold text-ncasa-error">{{ 'expenses.detail.voided' | translate }}</h2><p class="mt-2">{{ expense.voidReason }}</p>@if (expense.voidedAt; as voidedAt) { <p class="mt-1 text-xs text-ncasa-muted">{{ voidedAt.slice(0, 10) | localizedDate }}</p> }</app-card> }
+    <div class="flex justify-end">@if (canVoid()) { <app-button variant="destructive" (click)="openVoid($event)">{{ 'expenses.detail.voidAction' | translate }}</app-button> }</div>
+    @if (store.error() && store.state() === 'ready') { <p role="alert" class="rounded-xl bg-ncasa-error/5 p-4 text-sm text-ncasa-error">{{ store.error()?.message }}</p> }
+  }
+</section>
+
+<dialog #voidDialog (cancel)="cancelVoid($event)" (click)="backdrop($event)" aria-labelledby="void-title" aria-describedby="void-description" class="inset-x-0 bottom-0 top-auto m-0 w-full max-w-none rounded-t-3xl border-0 bg-ncasa-surface p-0 shadow-2xl backdrop:bg-ncasa-charcoal/45 sm:inset-0 sm:m-auto sm:max-w-md sm:rounded-3xl">
+  <section class="p-6"><h2 id="void-title" class="text-xl font-semibold text-ncasa-forest">{{ 'expenses.detail.voidTitle' | translate }}</h2><p id="void-description" class="mt-2 text-sm text-ncasa-muted">{{ 'expenses.detail.voidDescription' | translate }}</p>
+    <label for="void-reason" class="mt-5 block text-sm font-medium">{{ 'expenses.detail.reason' | translate }}</label><textarea id="void-reason" maxlength="500" rows="4" class="mt-1 w-full rounded-xl border border-ncasa-border p-3" [value]="reason()" (input)="reason.set($any($event.target).value)" [attr.aria-invalid]="reasonError()" aria-describedby="void-reason-error"></textarea>
+    @if (reasonError()) { <p id="void-reason-error" role="alert" class="mt-1 text-xs text-ncasa-error">{{ 'expenses.detail.reasonError' | translate }}</p> }
+    <div class="mt-6 flex justify-end gap-3"><app-button variant="secondary" [disabled]="store.pending()" (click)="cancelVoid()">{{ 'common.cancel' | translate }}</app-button><app-button variant="destructive" [disabled]="store.pending()" (click)="confirmVoid()">{{ (store.pending() ? 'expenses.detail.voiding' : 'expenses.detail.confirmVoid') | translate }}</app-button></div>
+  </section>
+</dialog>

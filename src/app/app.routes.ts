@@ -2,12 +2,14 @@ import { Routes } from '@angular/router';
 import { AuthLayout } from './shared/layouts/auth-layout/auth-layout';
 import { AppLayoutComponent } from './shared/layouts/app-layout/app-layout.component';
 import { authGuard, guestGuard } from './features/auth/presentation/auth.guards';
+import { provideExpenses } from './features/expenses';
 
 export const routes: Routes = [
   {
     path: 'app',
     component: AppLayoutComponent,
     canActivate: [authGuard],
+    providers: [provideExpenses()],
     children: [
       {
         path: 'dashboard',
@@ -19,28 +21,10 @@ export const routes: Routes = [
       },
       {
         path: 'expenses',
-        loadComponent: () =>
-          import('./features/expenses/expense-list/expense-list.component').then(
-            (component) => component.ExpenseListComponent,
-          ),
+        loadChildren: () => import('./features/expenses/expenses.routes').then(module => module.EXPENSE_ROUTES),
         data: { titleKey: 'metadata.expenses' },
       },
-      {
-        path: 'expenses/new',
-        loadComponent: () =>
-          import('./features/expenses/expense-form/expense-form.component').then(
-            (component) => component.ExpenseFormComponent,
-          ),
-        data: { titleKey: 'metadata.newExpense' },
-      },
-      {
-        path: 'tickets',
-        loadComponent: () =>
-          import('./features/expenses/expense-form/expense-form.component').then(
-            (component) => component.ExpenseFormComponent,
-          ),
-        data: { titleKey: 'metadata.ticket' },
-      },
+      { path: 'tickets', redirectTo: 'expenses', pathMatch: 'full' },
       {
         path: 'calendar',
         loadComponent: () =>

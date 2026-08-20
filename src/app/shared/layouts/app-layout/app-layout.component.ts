@@ -40,7 +40,6 @@ export class AppLayoutComponent {
   readonly nav = [
     { labelKey: 'navigation.dashboard', icon: 'home', path: '/app/dashboard' },
     { labelKey: 'navigation.expenses', icon: 'wallet', path: '/app/expenses' },
-    { labelKey: 'navigation.tickets', icon: 'receipt-text', path: '/app/tickets' },
     { labelKey: 'navigation.calendar', icon: 'calendar', path: '/app/calendar' },
     { labelKey: 'navigation.household', icon: 'users', path: '/app/household' },
   ];

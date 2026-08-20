@@ -1,104 +1,18 @@
 <section class="flex flex-col gap-6">
-  <!-- Greeting -->
-  <header class="flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <p class="text-sm text-ncasa-muted">{{ householdName() }}</p>
-      <h1 class="mt-1 text-2xl font-semibold text-ncasa-forest sm:text-3xl">
-        {{ 'dashboard.hello' | translate: { name: currentUserEmail() } }}
-      </h1>
-    </div>
-    <a routerLink="/app/expenses/new">
-      <app-button variant="primary" icon="plus">{{ 'dashboard.addExpense' | translate }}</app-button>
-    </a>
-  </header>
-
-  <!-- Stats -->
-  <div class="grid gap-4 sm:grid-cols-3">
-    <app-stat-card
-      [label]="'dashboard.spentMonth' | translate"
-      [value]="totalThisMonth | localizedCurrency"
-      [caption]="'dashboard.wholeHousehold' | translate"
-      icon="chart-pie"
-    ></app-stat-card>
-    <app-stat-card
-      [label]="'household.members' | translate"
-      [value]="members().length.toString()"
-      [caption]="householdName()"
-      icon="users"
-      tone="positive"
-    ></app-stat-card>
-    <app-stat-card
-      [label]="'dashboard.pendingSplit' | translate"
-      [value]="pendingToSplit | localizedCurrency"
-      [caption]="'dashboard.onePending' | translate"
-      icon="wallet"
-      tone="coral"
-    ></app-stat-card>
-  </div>
-
+  <header class="flex flex-wrap items-end justify-between gap-4"><div><p class="text-sm text-ncasa-muted">{{ householdName() }}</p><h1 class="mt-1 text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'dashboard.hello' | translate: { name: currentUserEmail() } }}</h1></div><a routerLink="/app/expenses/new"><app-button variant="primary" icon="plus">{{ 'dashboard.addExpense' | translate }}</app-button></a></header>
+  <div class="max-w-sm"><app-stat-card [label]="'household.members' | translate" [value]="members().length.toString()" [caption]="householdName()" icon="users" tone="positive" /></div>
   <div class="grid gap-6 lg:grid-cols-5">
-    <!-- Balances -->
-    <app-card padding="none" class="lg:col-span-3">
-      <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2>
-        <a routerLink="/app/household" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-          {{ 'dashboard.viewHousehold' | translate }}
-        </a>
-      </div>
-      <ul class="divide-y divide-ncasa-border">
-        <li *ngFor="let m of members()" class="flex items-center gap-3 px-5 py-3.5">
-          <app-avatar [initials]="(m.email || '?').slice(0, 2).toUpperCase()" [name]="m.email || ''" size="md"></app-avatar>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ m.email || ('household.unknownAccount' | translate) }}</p>
-            <p class="text-xs text-ncasa-muted">{{ ('household.roles.' + m.role.toLowerCase()) | translate }}</p>
-          </div>
-          <app-badge *ngIf="m.owner" tone="forest">{{ 'household.owner' | translate }}</app-badge>
-        </li>
-      </ul>
+    <app-card padding="none" class="lg:col-span-3"><div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4"><h2 class="text-base font-semibold text-ncasa-forest">{{ 'household.members' | translate }}</h2><a routerLink="/app/household" class="text-sm font-medium text-ncasa-forest">{{ 'dashboard.viewHousehold' | translate }}</a></div>
+      <ul class="divide-y divide-ncasa-border">@for (member of members(); track member.id) { <li class="flex items-center gap-3 px-5 py-3.5"><app-avatar [initials]="(member.email || '?').slice(0, 2).toUpperCase()" [name]="member.email || ''" size="md" /><div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ member.email || ('household.unknownAccount' | translate) }}</p><p class="text-xs text-ncasa-muted">{{ ('household.roles.' + member.role.toLowerCase()) | translate }}</p></div></li> }</ul>
     </app-card>
-
-    <!-- Upcoming events -->
-    <app-card padding="none" class="lg:col-span-2">
-      <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.upcoming' | translate }}</h2>
-        <a routerLink="/app/calendar" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-          {{ 'navigation.calendar' | translate }}
-        </a>
-      </div>
-      <ul class="divide-y divide-ncasa-border">
-        <li *ngFor="let e of upcomingEvents; trackBy: trackEvent" class="flex items-center gap-3 px-5 py-3.5">
-          <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full" [ngClass]="eventDot(e.category)"></span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.titleKey | translate }}</p>
-            <p class="text-xs text-ncasa-muted">{{ e.date | localizedDate }}<span *ngIf="e.time"> · {{ e.time }}</span></p>
-          </div>
-        </li>
-      </ul>
+    <app-card padding="none" class="lg:col-span-2"><div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4"><h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.upcoming' | translate }}</h2><a routerLink="/app/calendar" class="text-sm font-medium text-ncasa-forest">{{ 'navigation.calendar' | translate }}</a></div>
+      <ul class="divide-y divide-ncasa-border">@for (event of upcomingEvents; track event.id) { <li class="flex items-center gap-3 px-5 py-3.5"><span class="h-2.5 w-2.5 rounded-full" [class]="eventDot(event.category)"></span><div><p class="text-sm font-medium">{{ event.titleKey | translate }}</p><p class="text-xs text-ncasa-muted">{{ event.date | localizedDate }}</p></div></li> }</ul>
     </app-card>
   </div>
-
-  <!-- Recent expenses -->
-  <app-card padding="none">
-    <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-      <h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.recent' | translate }}</h2>
-      <a routerLink="/app/expenses" class="text-sm font-medium text-ncasa-forest hover:text-ncasa-coral">
-        {{ 'dashboard.viewAll' | translate }}
-      </a>
-    </div>
-    <ul class="divide-y divide-ncasa-border">
-      <li *ngFor="let e of recentExpenses" class="flex items-center gap-3 px-5 py-3.5">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest">
-          <lucide-icon [name]="categoryIcon(e.category)" [size]="18" aria-hidden="true"></lucide-icon>
-        </span>
-        <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.conceptKey | translate }}</p>
-          <p class="text-xs text-ncasa-muted">{{ 'common.paidBy' | translate: { name: e.paidByName } }} · {{ e.date | localizedDate }}</p>
-        </div>
-        <div class="flex flex-col items-end gap-1">
-          <span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ e.amount | localizedCurrency }}</span>
-          <app-badge [tone]="statusTone(e.status)">{{ ('expenses.status.' + e.status) | translate }}</app-badge>
-        </div>
-      </li>
-    </ul>
+  <app-card padding="none"><div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4"><h2 class="text-base font-semibold text-ncasa-forest">{{ 'dashboard.recent' | translate }}</h2><a routerLink="/app/expenses" class="text-sm font-medium text-ncasa-forest">{{ 'dashboard.viewAll' | translate }}</a></div>
+    @if (recentState() === 'loading' || recentState() === 'initial') { <p class="p-5 text-sm text-ncasa-muted" role="status">{{ 'expenses.loading' | translate }}</p>
+    } @else if (recentState() === 'error') { <p class="p-5 text-sm text-ncasa-error" role="alert">{{ 'expenses.errorDescription' | translate }}</p>
+    } @else if (recentState() === 'empty') { <p class="p-5 text-sm text-ncasa-muted">{{ 'expenses.emptyTitle' | translate }}</p>
+    } @else { <ul class="divide-y divide-ncasa-border">@for (expense of recentExpenses(); track expense.id) { <li><a [routerLink]="['/app/expenses', expense.id]" class="flex items-center gap-3 px-5 py-3.5 hover:bg-ncasa-sage-soft"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest"><lucide-icon name="receipt-text" [size]="18" aria-hidden="true" /></span><div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ expense.description }}</p><p class="text-xs text-ncasa-muted">{{ 'common.paidBy' | translate: { name: memberName(expense.payerMemberId) } }} · {{ expense.expenseDate | localizedDate }}</p></div><strong class="text-sm">{{ expense.amount | localizedCurrency }}</strong></a></li> }</ul> }
   </app-card>
 </section>

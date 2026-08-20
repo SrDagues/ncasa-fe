@@ -5,10 +5,25 @@ import { LanguageService } from './language.service';
 export class LocalizedCurrencyPipe implements PipeTransform {
   private readonly language = inject(LanguageService).currentLanguage;
 
-  transform(value: number): string {
+  transform(value: number | { readonly minorUnits: bigint; readonly currency: string; readonly fractionDigits: number }, currency = 'EUR'): string {
+    const resolvedCurrency = typeof value === 'number' ? currency : value.currency;
+    if (typeof value !== 'number') {
+      const negative = value.minorUnits < 0n;
+      const absolute = negative ? -value.minorUnits : value.minorUnits;
+      const divisor = 10n ** BigInt(value.fractionDigits);
+      const fraction = (absolute % divisor).toString().padStart(value.fractionDigits, '0');
+      const formatter = new Intl.NumberFormat(this.language(), {
+        style: 'currency', currency: resolvedCurrency, minimumFractionDigits: value.fractionDigits,
+        maximumFractionDigits: value.fractionDigits,
+      });
+      const formatted = formatter.formatToParts(absolute / divisor).map(part => part.type === 'fraction' ? fraction : part.value).join('');
+      if (!negative) return formatted;
+      const minus = new Intl.NumberFormat(this.language()).formatToParts(-1).find(part => part.type === 'minusSign')?.value ?? '-';
+      return `${minus}${formatted}`;
+    }
     return new Intl.NumberFormat(this.language(), {
       style: 'currency',
-      currency: 'EUR',
+      currency: resolvedCurrency,
     }).format(value);
   }
 }
