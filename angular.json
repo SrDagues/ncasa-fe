@@ -70,7 +70,8 @@
               "buildTarget": "ncasa-fe:build:production"
             },
             "development": {
-              "buildTarget": "ncasa-fe:build:development"
+              "buildTarget": "ncasa-fe:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

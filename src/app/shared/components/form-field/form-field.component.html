@@ -1,0 +1,11 @@
+<div class="flex flex-col gap-1.5">
+  <label [attr.for]="fieldId" class="flex items-center gap-2 text-sm font-medium text-ncasa-charcoal">
+    {{ label }}
+    <span *ngIf="optional" class="text-xs font-normal text-ncasa-muted">(opcional)</span>
+  </label>
+  <ng-content></ng-content>
+  <p *ngIf="hint && !error" class="text-xs text-ncasa-muted">{{ hint }}</p>
+  <p *ngIf="error" class="flex items-center gap-1.5 text-xs font-medium text-ncasa-error">
+    {{ error }}
+  </p>
+</div>

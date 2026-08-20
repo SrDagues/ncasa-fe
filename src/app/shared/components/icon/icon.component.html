@@ -1,0 +1,15 @@
+<svg
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  [style.width.px]="size"
+  [style.height.px]="size"
+  aria-hidden="true"
+>
+  @for (path of iconPaths; track path) {
+    <path [attr.d]="path" />
+  }
+</svg>

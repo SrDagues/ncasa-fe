@@ -1,0 +1,35 @@
+<div class="relative">
+  <lucide-icon
+    *ngIf="icon"
+    [name]="icon"
+    [size]="18"
+    class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ncasa-muted"
+    aria-hidden="true"
+  ></lucide-icon>
+  <span
+    *ngIf="prefix"
+    class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-ncasa-muted"
+    aria-hidden="true"
+    >{{ prefix }}</span
+  >
+  <input
+    [id]="id"
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="value"
+    [disabled]="disabled"
+    [attr.autocomplete]="autocomplete"
+    [attr.aria-invalid]="invalid"
+    [class]="classes"
+    (input)="onInput($event)"
+  />
+  <button
+    *ngIf="trailingIcon"
+    type="button"
+    (click)="trailingIconClick.emit()"
+    class="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-ncasa-muted transition-colors hover:bg-ncasa-sage-soft hover:text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"
+    aria-label="Alternar visibilidad"
+  >
+    <lucide-icon [name]="trailingIcon" [size]="18" aria-hidden="true"></lucide-icon>
+  </button>
+</div>

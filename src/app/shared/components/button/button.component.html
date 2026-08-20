@@ -1,0 +1,15 @@
+<button [type]="type" [disabled]="disabled" [class]="classes">
+  <lucide-icon
+    *ngIf="icon && iconPosition === 'left'"
+    [name]="icon"
+    [size]="iconSize"
+    aria-hidden="true"
+  ></lucide-icon>
+  <ng-content></ng-content>
+  <lucide-icon
+    *ngIf="icon && iconPosition === 'right'"
+    [name]="icon"
+    [size]="iconSize"
+    aria-hidden="true"
+  ></lucide-icon>
+</button>

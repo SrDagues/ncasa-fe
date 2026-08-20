@@ -1,0 +1,7 @@
+<div [class]="wrap" role="status">
+  <lucide-icon [name]="icon" [size]="20" class="mt-0.5 shrink-0" aria-hidden="true"></lucide-icon>
+  <div class="text-sm">
+    <p *ngIf="title" class="font-semibold">{{ title }}</p>
+    <div class="text-current/90"><ng-content></ng-content></div>
+  </div>
+</div>
