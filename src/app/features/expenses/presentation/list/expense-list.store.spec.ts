@@ -3,6 +3,8 @@ import { Subject } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ExpensePage } from '../../application/expense.models';
 import { ListExpensesUseCase } from '../../application/use-cases/expense.use-cases';
+import { ListExpenseCategoriesUseCase } from '../../application/use-cases/expense-category.use-cases';
+import { of } from 'rxjs';
 import { ExpenseListStore } from './expense-list.store';
 
 describe('ExpenseListStore', () => {
@@ -11,7 +13,7 @@ describe('ExpenseListStore', () => {
     responses = [];
     TestBed.configureTestingModule({ providers: [ExpenseListStore, { provide: ListExpensesUseCase, useValue: {
       execute: () => { const response = new Subject<ExpensePage>(); responses.push(response); return response; },
-    } }] });
+    } }, { provide: ListExpenseCategoriesUseCase, useValue: { execute: () => of([]) } }] });
   });
 
   it('ignores a stale response after household or filters change', async () => {

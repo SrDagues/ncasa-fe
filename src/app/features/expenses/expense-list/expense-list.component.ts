@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -9,10 +9,12 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { HouseholdStore } from '../../household';
 import { ExpenseStatus } from '../domain';
+import { ExpenseSplitType } from '../domain';
 import { ExpenseListStore } from '../presentation/list/expense-list.store';
+import { ExpensesSectionNavComponent } from '../presentation/navigation/expenses-section-nav.component';
 
 @Component({ selector: 'app-expense-list', standalone: true,
-  imports: [RouterLink, TranslatePipe, LocalizedCurrencyPipe, LocalizedDatePipe, ButtonComponent, CardComponent, EmptyStateComponent, IconComponent],
+  imports: [RouterLink, TranslatePipe, LocalizedCurrencyPipe, LocalizedDatePipe, ButtonComponent, CardComponent, EmptyStateComponent, IconComponent, ExpensesSectionNavComponent],
   templateUrl: './expense-list.component.html' })
 export class ExpenseListComponent {
   protected readonly household = inject(HouseholdStore);
@@ -25,17 +27,30 @@ export class ExpenseListComponent {
   protected readonly to = signal('');
   protected readonly payerMemberId = signal('');
   protected readonly participantMemberId = signal('');
+  protected readonly category = signal('');
+  protected readonly splitType = signal<ExpenseSplitType | ''>('');
   protected readonly page = signal(0);
   protected readonly dateError = signal(false);
+  private householdId: string | null = this.household.active()?.id ?? null;
 
   constructor() {
+    if (this.householdId) void this.store.loadCategories(this.householdId);
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.status.set(params.get('status') === 'VOIDED' ? 'VOIDED' : 'CONFIRMED');
       this.from.set(params.get('from') ?? ''); this.to.set(params.get('to') ?? '');
       this.payerMemberId.set(params.get('payerMemberId') ?? ''); this.participantMemberId.set(params.get('participantMemberId') ?? '');
+      this.category.set(params.get('category') ?? ''); const split=params.get('splitType');this.splitType.set(split==='EQUAL'||split==='EXACT'||split==='PERCENTAGE'?split:'');
       this.page.set(Math.max(0, Number(params.get('page')) || 0)); this.reload();
     });
-    effect(() => { this.household.active()?.id; this.reload(); });
+    effect(() => {
+      const id = this.household.active()?.id ?? null;
+      if (id === this.householdId) return;
+      this.householdId = id;
+      untracked(() => {
+        if (id) void this.store.loadCategories(id);
+        this.reload();
+      });
+    });
   }
 
   protected applyFilters(): void {
@@ -52,12 +67,15 @@ export class ExpenseListComponent {
     const members = this.household.active()?.members ?? [];
     const payer = members.some(member => member.id === this.payerMemberId()) ? this.payerMemberId() : undefined;
     const participant = members.some(member => member.id === this.participantMemberId()) ? this.participantMemberId() : undefined;
-    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined, payerMemberId: payer, participantMemberId: participant }, this.page());
+    const category = this.category()==='uncategorized' ? {kind:'UNCATEGORIZED' as const} : this.store.categories().some(item=>item.id===this.category()) ? {kind:'CATEGORY' as const,categoryId:this.category()} : {kind:'ALL' as const};
+    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined, payerMemberId: payer, participantMemberId: participant, category, splitType:this.splitType()||undefined }, this.page());
   }
   private navigate(page: number): Promise<boolean> {
     return this.router.navigate([], { relativeTo: this.route, queryParams: {
       status: this.status(), from: this.from() || null, to: this.to() || null, page: page || null,
       payerMemberId: this.payerMemberId() || null, participantMemberId: this.participantMemberId() || null,
+      category: this.category() || null, splitType: this.splitType() || null,
     }, queryParamsHandling: 'merge' });
   }
+  protected categoryName(id:string|null):string{return id?this.store.categories().find(item=>item.id===id)?.name??`${id.slice(0,8)}…`:'expenseCategories.uncategorized';}
 }

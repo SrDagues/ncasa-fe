@@ -13,7 +13,7 @@ describe('expense API mapper', () => {
   });
   it('rejects unknown server vocabulary', () => {
     expect(() => mapExpense({ ...valid, status: 'DRAFT' })).toThrow(ExpenseApplicationError);
-    expect(() => mapExpense({ ...valid, splitType: 'PERCENTAGE' })).toThrow(ExpenseApplicationError);
+    expect(() => mapExpense({ ...valid, splitType: 'WEIGHTED' })).toThrow(ExpenseApplicationError);
   });
   it('rejects malformed response shapes', () => {
     expect(() => mapExpense({ ...valid, allocations: null })).toThrow(ExpenseApplicationError);

@@ -13,7 +13,8 @@ const money = (value: unknown, currency: string): Money => { try { const decimal
 export function mapMonthlySummary(value: unknown): MonthlyFinancialSummary {
   const dto = object(value); return { householdId: text(dto['householdId']), month: text(dto['month']), currencies: array(dto['currencies']).map(item => {
     const currencyDto = object(item); const currency = text(currencyDto['currency']); return { currency,
-      totalExpenses: money(currencyDto['totalExpenses'], currency), members: array(currencyDto['members']).map(member => { const m = object(member); return { memberId: text(m['memberId']), paid: money(m['paid'], currency), allocated: money(m['allocated'], currency), net: money(m['net'], currency) }; }) };
+      totalExpenses: money(currencyDto['totalExpenses'], currency), members: array(currencyDto['members']).map(member => { const m = object(member); return { memberId: text(m['memberId']), paid: money(m['paid'], currency), allocated: money(m['allocated'], currency), net: money(m['net'], currency) }; }),
+      categories: array(currencyDto['categories'] ?? []).map(category => { const c = object(category); return { categoryId: nullable(c['categoryId']), name: nullable(c['name']), total: money(c['total'], currency) }; }) };
   }) };
 }
 export function mapDebtSummary(value: unknown): DebtSummary {

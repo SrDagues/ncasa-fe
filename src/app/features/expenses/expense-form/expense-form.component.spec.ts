@@ -24,7 +24,7 @@ describe('ExpenseFormComponent', () => {
       { provide: HouseholdStore, useValue: { active: signal(household), members: signal(members), households: signal([
         { id: 'h1', name: 'Casa', status: 'ACTIVE', currentMemberId: 'm1', currentRole: 'ADMIN', owner: true },
       ]) } },
-      { provide: ExpenseFormStore, useValue: { submit: submitExpense, pending: signal(false), error: signal(null) } },
+      { provide: ExpenseFormStore, useValue: { submit: submitExpense, pending: signal(false), error: signal(null), loading: signal(false), conflict: signal(false), draft: signal(null), categories: signal([]), loadCategories: vi.fn(async()=>undefined) } },
       { provide: NotificationService, useValue: { show: vi.fn() } },
     ] });
     TestBed.inject(TranslateService).setTranslation('es', es);

@@ -14,6 +14,11 @@ ncasa-fe is a modular Angular application organized by business capability. It c
 DDD is selective. A button, card or simple view formatter does not need an entity or use case. Money,
 expense splitting, settlement, invitations, session restoration and receipt-to-expense workflows do.
 
+For expenses, percentages are stored as integer basis points and materialized with the same deterministic
+remainder algorithm as the backend. Expense drafts are a separate aggregate with optimistic versioning;
+categories represent the current classification, so historical monthly reports reflect later
+reclassifications. The backend remains authoritative for persistence, permissions and final validation.
+
 ## 2. Bounded contexts
 
 Use these initial ownership boundaries. Refine them only when product language proves a different

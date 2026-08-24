@@ -1,6 +1,6 @@
 import { map, Observable } from 'rxjs';
 import { Expense, ExpenseId, HouseholdRef } from '../../domain';
-import { CreateExpenseCommand, ExpenseFilters, ExpensePage, ExpensePagination, RecentExpenseSummary } from '../expense.models';
+import { CreateExpenseCommand, ExpenseFilters, ExpensePage, ExpensePagination, RecentExpenseSummary, ReclassifyExpenseCommand } from '../expense.models';
 import { ExpenseGateway } from '../ports/expense.gateway';
 
 export class ListExpensesUseCase {
@@ -29,6 +29,19 @@ export class VoidExpenseUseCase {
   execute(householdId: HouseholdRef, expenseId: ExpenseId, reason: string): Observable<Expense> {
     return this.gateway.void(householdId, expenseId, reason.trim());
   }
+}
+
+export class ReclassifyExpenseUseCase {
+  constructor(private readonly gateway: ExpenseGateway) {}
+  execute(householdId: HouseholdRef, expenseId: ExpenseId, command: ReclassifyExpenseCommand) {
+    const reason = command.reason?.trim();
+    if (reason && reason.length > 500) throw new Error('Classification reason cannot exceed 500 characters');
+    return this.gateway.reclassify(householdId, expenseId, { categoryId: command.categoryId, reason: reason || undefined });
+  }
+}
+export class ListExpenseClassificationHistoryUseCase {
+  constructor(private readonly gateway: ExpenseGateway) {}
+  execute(householdId: HouseholdRef, expenseId: ExpenseId) { return this.gateway.classificationHistory(householdId, expenseId); }
 }
 
 export class ListRecentExpensesUseCase {

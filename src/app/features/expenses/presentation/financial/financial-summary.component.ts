@@ -1,7 +1,8 @@
 import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';import { ActivatedRoute, Router, RouterLink } from '@angular/router';import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedCurrencyPipe } from '../../../../core/i18n/localized-format.pipe';import { ButtonComponent } from '../../../../shared/components/button/button.component';import { CardComponent } from '../../../../shared/components/card/card.component';import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';import { HouseholdStore } from '../../../household';import { Money } from '../../domain';import { FinancialSummaryStore } from './financial-summary.store';
-@Component({selector:'app-financial-summary',imports:[RouterLink,TranslatePipe,LocalizedCurrencyPipe,ButtonComponent,CardComponent,EmptyStateComponent],templateUrl:'./financial-summary.component.html'})
+import { ExpensesSectionNavComponent } from '../navigation/expenses-section-nav.component';
+@Component({selector:'app-financial-summary',imports:[RouterLink,TranslatePipe,LocalizedCurrencyPipe,ButtonComponent,CardComponent,EmptyStateComponent,ExpensesSectionNavComponent],templateUrl:'./financial-summary.component.html'})
 export class FinancialSummaryComponent {
  protected readonly household=inject(HouseholdStore);protected readonly store=inject(FinancialSummaryStore);private readonly route=inject(ActivatedRoute);private readonly router=inject(Router);private readonly destroyRef=inject(DestroyRef);protected readonly month=signal(localMonth());
  constructor(){this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params=>{const value=params.get('month');this.month.set(value&&/^\d{4}-(0[1-9]|1[0-2])$/.test(value)?value:localMonth());this.reload();});effect(()=>{this.household.active()?.id;this.reload();});}

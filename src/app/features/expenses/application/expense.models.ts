@@ -1,4 +1,9 @@
-import { CurrentMemberPosition, Expense, ExpenseStatus, HouseholdRef, MemberRef, Money, MonthlyMemberPosition, Settlement, SettlementStatus, SuggestedSettlement } from '../domain';
+import { CurrentMemberPosition, Expense, ExpenseCategoryId, ExpenseDraftId, ExpenseDraftSplit, ExpenseStatus, ExpenseSplitType, HouseholdRef, MemberRef, Money, MonthlyMemberPosition, Percentage, Settlement, SettlementStatus, SuggestedSettlement } from '../domain';
+
+export type ExpenseCategoryFilter =
+  | { readonly kind: 'ALL' }
+  | { readonly kind: 'CATEGORY'; readonly categoryId: ExpenseCategoryId }
+  | { readonly kind: 'UNCATEGORIZED' };
 
 export interface ExpenseFilters {
   readonly from?: string;
@@ -6,9 +11,12 @@ export interface ExpenseFilters {
   readonly status: ExpenseStatus;
   readonly payerMemberId?: MemberRef;
   readonly participantMemberId?: MemberRef;
+  readonly category?: ExpenseCategoryFilter;
+  readonly splitType?: ExpenseSplitType;
 }
 
-export interface MonthlyCurrencySummary { readonly currency: string; readonly totalExpenses: Money; readonly members: readonly MonthlyMemberPosition[]; }
+export interface MonthlyCategorySummary { readonly categoryId: ExpenseCategoryId | null; readonly name: string | null; readonly total: Money; }
+export interface MonthlyCurrencySummary { readonly currency: string; readonly totalExpenses: Money; readonly members: readonly MonthlyMemberPosition[]; readonly categories: readonly MonthlyCategorySummary[]; }
 export interface MonthlyFinancialSummary { readonly householdId: HouseholdRef; readonly month: string; readonly currencies: readonly MonthlyCurrencySummary[]; }
 export interface DebtCurrencySummary { readonly currency: string; readonly members: readonly CurrentMemberPosition[]; readonly suggestedSettlements: readonly SuggestedSettlement[]; }
 export interface DebtSummary { readonly householdId: HouseholdRef; readonly asOf: string; readonly currencies: readonly DebtCurrencySummary[]; }
@@ -29,15 +37,28 @@ export interface ExpensePage {
 
 export type CreateExpenseSplit =
   | { readonly type: 'EQUAL'; readonly memberIds: readonly MemberRef[] }
-  | { readonly type: 'EXACT'; readonly allocations: readonly { readonly memberId: MemberRef; readonly amount: Money }[] };
+  | { readonly type: 'EXACT'; readonly allocations: readonly { readonly memberId: MemberRef; readonly amount: Money }[] }
+  | { readonly type: 'PERCENTAGE'; readonly allocations: readonly { readonly memberId: MemberRef; readonly percentage: Percentage }[] };
 
 export interface CreateExpenseCommand {
   readonly description: string;
   readonly amount: Money;
   readonly expenseDate: string;
   readonly payerMemberId: MemberRef;
+  readonly categoryId?: ExpenseCategoryId;
   readonly split: CreateExpenseSplit;
 }
+
+export interface ExpenseDraftSnapshot {
+  readonly description: string | null; readonly amount: Money | null; readonly currency: string | null;
+  readonly expenseDate: string | null; readonly payerMemberId: MemberRef | null;
+  readonly categoryId: ExpenseCategoryId | null; readonly split: ExpenseDraftSplit | null;
+}
+export interface SaveExpenseDraftCommand {
+  readonly householdId: HouseholdRef; readonly draftId?: ExpenseDraftId; readonly version?: number;
+  readonly snapshot: ExpenseDraftSnapshot;
+}
+export interface ReclassifyExpenseCommand { readonly categoryId: ExpenseCategoryId | null; readonly reason?: string; }
 
 export interface RecentExpenseSummary {
   readonly id: string;

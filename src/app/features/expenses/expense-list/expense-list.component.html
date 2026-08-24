@@ -3,7 +3,7 @@
     <div><h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'expenses.title' | translate }}</h1><p class="mt-1 text-sm text-ncasa-muted">{{ 'expenses.subtitle' | translate }}</p></div>
     @if (household.active()) { <a routerLink="new"><app-button variant="primary" icon="plus">{{ 'expenses.add' | translate }}</app-button></a> }
   </header>
-  <nav class="flex gap-2" [attr.aria-label]="'expenseSections.label' | translate"><a routerLink="/app/expenses" aria-current="page" class="rounded-xl bg-ncasa-forest px-4 py-2 text-ncasa-cream">{{'expenseSections.history'|translate}}</a><a routerLink="/app/expenses/balances" class="rounded-xl px-4 py-2">{{'expenseSections.balances'|translate}}</a><a routerLink="/app/expenses/settlements" class="rounded-xl px-4 py-2">{{'expenseSections.settlements'|translate}}</a></nav>
+  <app-expenses-section-nav current="history" />
   @if (household.state() === 'initial' || household.state() === 'loading') {
     <app-card><p role="status">{{ 'expenses.loadingHousehold' | translate }}</p></app-card>
   } @else if (!household.active()) {
@@ -19,6 +19,8 @@
         <label class="text-sm font-medium">{{ 'expenses.filters.to' | translate }}<input type="date" class="mt-1 h-11 w-full rounded-xl border border-ncasa-border bg-ncasa-surface px-3" [value]="to()" (input)="to.set($any($event.target).value)" /></label>
         <label class="text-sm font-medium">{{'expenseSections.payer'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="payerMemberId()" (change)="payerMemberId.set($any($event.target).value)"><option value="">{{'expenseSections.allMembers'|translate}}</option>@for(member of household.active()?.members??[];track member.id){<option [value]="member.id">{{memberName(member.id)}}</option>}</select></label>
         <label class="text-sm font-medium">{{'expenseSections.participant'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="participantMemberId()" (change)="participantMemberId.set($any($event.target).value)"><option value="">{{'expenseSections.allMembers'|translate}}</option>@for(member of household.active()?.members??[];track member.id){<option [value]="member.id">{{memberName(member.id)}}</option>}</select></label>
+        <label class="text-sm font-medium">{{'expenses.filters.category'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="category()" (change)="category.set($any($event.target).value)"><option value="">{{'expenses.filters.allCategories'|translate}}</option><option value="uncategorized">{{'expenseCategories.uncategorized'|translate}}</option>@for(item of store.categories();track item.id){<option [value]="item.id">{{item.name}}{{item.status==='ARCHIVED'?' · '+('expenseCategories.archivedStatus'|translate):''}}</option>}</select></label>
+        <label class="text-sm font-medium">{{'expenses.filters.splitType'|translate}}<select class="mt-1 h-11 w-full rounded-xl border px-3" [value]="splitType()" (change)="splitType.set($any($event.target).value)"><option value="">{{'expenses.filters.allSplitTypes'|translate}}</option><option value="EQUAL">{{'expenses.splitType.equal'|translate}}</option><option value="EXACT">{{'expenses.splitType.exact'|translate}}</option><option value="PERCENTAGE">{{'expenses.splitType.percentage'|translate}}</option></select></label>
         <app-button variant="secondary" (click)="applyFilters()">{{ 'expenses.filters.apply' | translate }}</app-button>
       </div>
       @if (dateError()) { <p class="text-sm text-ncasa-error" role="alert">{{ 'expenses.filters.dateError' | translate }}</p> }
@@ -33,7 +35,7 @@
       <app-card padding="none"><ul class="divide-y divide-ncasa-border">@for (expense of result.items; track expense.id) {
         <li><a [routerLink]="expense.id" class="flex items-center gap-3 px-5 py-4 hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ncasa-forest">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest"><lucide-icon name="receipt-text" [size]="20" aria-hidden="true" /></span>
-          <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ncasa-charcoal">{{ expense.description }}</p><p class="text-xs text-ncasa-muted">{{ 'common.paidBy' | translate: { name: memberName(expense.payerMemberId) } }} · {{ expense.expenseDate | localizedDate }}</p></div>
+          <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ncasa-charcoal">{{ expense.description }}</p><p class="text-xs text-ncasa-muted"><span class="rounded-full bg-ncasa-sage-soft px-2 py-0.5">{{expense.categoryId?categoryName(expense.categoryId):(categoryName(null)|translate)}}</span> · {{ 'common.paidBy' | translate: { name: memberName(expense.payerMemberId) } }} · {{ expense.expenseDate | localizedDate }}</p></div>
           <div class="text-right"><span class="text-sm font-semibold tabular text-ncasa-charcoal">{{ expense.amount | localizedCurrency }}</span><p class="text-xs text-ncasa-muted">{{ ('expenses.status.' + expense.status.toLowerCase()) | translate }}</p></div>
         </a></li>
       }</ul></app-card>

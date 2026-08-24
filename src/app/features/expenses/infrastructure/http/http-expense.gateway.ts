@@ -1,10 +1,10 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { ExpenseApplicationError, ExpenseErrorKind } from '../../application/expense.errors';
-import { CreateExpenseCommand, ExpenseFilters, ExpensePage, ExpensePagination } from '../../application/expense.models';
+import { CreateExpenseCommand, ExpenseFilters, ExpensePage, ExpensePagination, ReclassifyExpenseCommand } from '../../application/expense.models';
 import { ExpenseGateway } from '../../application/ports/expense.gateway';
-import { Expense, ExpenseId, HouseholdRef } from '../../domain';
-import { mapExpense, mapExpensePage } from './expense-api.mapper';
+import { Expense, ExpenseClassificationChange, ExpenseId, HouseholdRef } from '../../domain';
+import { mapClassificationHistory, mapExpense, mapExpensePage } from './expense-api.mapper';
 
 export class HttpExpenseGateway implements ExpenseGateway {
   constructor(private readonly http: HttpClient, private readonly apiUrl: string) {}
@@ -15,6 +15,9 @@ export class HttpExpenseGateway implements ExpenseGateway {
     if (filters.to) params = params.set('to', filters.to);
     if (filters.payerMemberId) params = params.set('payerMemberId', filters.payerMemberId);
     if (filters.participantMemberId) params = params.set('participantMemberId', filters.participantMemberId);
+    if (filters.category?.kind === 'CATEGORY') params = params.set('categoryId', filters.category.categoryId);
+    if (filters.category?.kind === 'UNCATEGORIZED') params = params.set('uncategorized', true);
+    if (filters.splitType) params = params.set('splitType', filters.splitType);
     return this.http.get<unknown>(this.collection(householdId), { params }).pipe(map(mapExpensePage), this.errors());
   }
 
@@ -23,17 +26,29 @@ export class HttpExpenseGateway implements ExpenseGateway {
   }
 
   create(householdId: HouseholdRef, command: CreateExpenseCommand): Observable<Expense> {
-    const split = command.split.type === 'EQUAL'
-      ? { type: 'EQUAL', memberIds: command.split.memberIds }
-      : { type: 'EXACT', allocations: command.split.allocations.map(item => ({ memberId: item.memberId, amount: item.amount.toDecimal() })) };
-    return this.http.post<unknown>(this.collection(householdId), {
+    const split = command.split.type === 'EQUAL' ? { type: 'EQUAL', memberIds: command.split.memberIds }
+      : command.split.type === 'EXACT' ? { type: 'EXACT', allocations: command.split.allocations.map(item => ({ memberId: item.memberId, amount: item.amount.toDecimal() })) }
+      : { type: 'PERCENTAGE', allocations: command.split.allocations.map(item => ({ memberId: item.memberId, percentage: item.percentage.toDecimal() })) };
+    const body: Record<string, unknown> = {
       description: command.description, amount: command.amount.toDecimal(), currency: command.amount.currency,
       expenseDate: command.expenseDate, payerMemberId: command.payerMemberId, split,
-    }).pipe(map(mapExpense), this.errors());
+    };
+    if (command.categoryId) body['categoryId'] = command.categoryId;
+    return this.http.post<unknown>(this.collection(householdId), body).pipe(map(mapExpense), this.errors());
   }
 
   void(householdId: HouseholdRef, expenseId: ExpenseId, reason: string): Observable<Expense> {
     return this.http.post<unknown>(`${this.collection(householdId)}/${expenseId}/void`, { reason }).pipe(map(mapExpense), this.errors());
+  }
+
+  reclassify(householdId: HouseholdRef, expenseId: ExpenseId, command: ReclassifyExpenseCommand): Observable<Expense> {
+    const body: Record<string, unknown> = { categoryId: command.categoryId };
+    if (command.reason) body['reason'] = command.reason;
+    return this.http.post<unknown>(`${this.collection(householdId)}/${expenseId}/reclassify`, body).pipe(map(mapExpense), this.errors());
+  }
+
+  classificationHistory(householdId: HouseholdRef, expenseId: ExpenseId): Observable<readonly ExpenseClassificationChange[]> {
+    return this.http.get<unknown>(`${this.collection(householdId)}/${expenseId}/classification-history`).pipe(map(mapClassificationHistory), this.errors());
   }
 
   private collection(householdId: HouseholdRef): string { return `${this.apiUrl}/households/${householdId}/expenses`; }
