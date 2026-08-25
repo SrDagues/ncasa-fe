@@ -17,7 +17,7 @@ export function mapExpense(value: unknown): Expense {
   const source = string(dto['source']);
   const splitType = string(dto['splitType']);
   if (status !== 'CONFIRMED' && status !== 'VOIDED') return invalid();
-  if (source !== 'MANUAL') return invalid();
+  if (source !== 'MANUAL' && source !== 'PLAN') return invalid();
   if (splitType !== 'EQUAL' && splitType !== 'EXACT' && splitType !== 'PERCENTAGE') return invalid();
   const allocations = dto['allocations'];
   if (!Array.isArray(allocations)) return invalid();
@@ -28,7 +28,7 @@ export function mapExpense(value: unknown): Expense {
     allocations: allocations.map(item => { const allocation = object(item); return {
       memberId: string(allocation['memberId']), amount: Money.fromDecimal(string(allocation['amount']), currency),
     }; }),
-    status, source, voidReason: nullableString(dto['voidReason']), createdAt: string(dto['createdAt']),
+    status, source, sourcePlanId: optionalNullableString(dto['sourcePlanId']), occurrenceKey: optionalNullableString(dto['occurrenceKey']), voidReason: nullableString(dto['voidReason']), createdAt: string(dto['createdAt']),
     updatedAt: string(dto['updatedAt']), voidedAt: nullableString(dto['voidedAt']), version: number(dto['version']),
   };
 }

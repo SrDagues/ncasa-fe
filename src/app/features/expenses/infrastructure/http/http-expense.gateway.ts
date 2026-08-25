@@ -18,6 +18,8 @@ export class HttpExpenseGateway implements ExpenseGateway {
     if (filters.category?.kind === 'CATEGORY') params = params.set('categoryId', filters.category.categoryId);
     if (filters.category?.kind === 'UNCATEGORIZED') params = params.set('uncategorized', true);
     if (filters.splitType) params = params.set('splitType', filters.splitType);
+    if (filters.source) params = params.set('source', filters.source);
+    if (filters.planId) params = params.set('planId', filters.planId);
     return this.http.get<unknown>(this.collection(householdId), { params }).pipe(map(mapExpensePage), this.errors());
   }
 

@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { HouseholdStore } from '../../../household';
 
-export type ExpenseSection = 'history' | 'drafts' | 'balances' | 'settlements' | 'categories';
+export type ExpenseSection = 'history' | 'drafts' | 'plans' | 'balances' | 'settlements' | 'categories';
 
 @Component({
   selector: 'app-expenses-section-nav',
@@ -27,6 +27,7 @@ export class ExpensesSectionNavComponent {
     const items = [
       { section: 'history' as const, link: '/app/expenses', key: 'expenseSections.history' },
       { section: 'drafts' as const, link: '/app/expenses/drafts', key: 'expenseSections.drafts' },
+      { section: 'plans' as const, link: '/app/expenses/plans', key: 'expenseSections.plans' },
       { section: 'balances' as const, link: '/app/expenses/balances', key: 'expenseSections.balances' },
       { section: 'settlements' as const, link: '/app/expenses/settlements', key: 'expenseSections.settlements' },
     ];

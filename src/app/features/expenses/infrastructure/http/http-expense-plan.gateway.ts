@@ -1,0 +1,18 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { CreateExpensePlanCommand, ExpensePagination, ExpensePlanFilters, ExpensePlanForecast, ExpensePlanPage } from '../../application/expense.models';
+import { ExpensePlanGateway } from '../../application/ports/expense-plan.gateway';
+import { ExpensePlan, HouseholdRef } from '../../domain';
+import { mapExpensePlan, mapExpensePlanForecast, mapExpensePlanPage } from './expense-plan-api.mapper';
+import { normalizeExpenseHttpErrors as normalizeExpenseHttpError } from './expense-http-errors';
+export class HttpExpensePlanGateway implements ExpensePlanGateway{
+ constructor(private readonly http:HttpClient,private readonly apiUrl:string){}
+ list(h:HouseholdRef,f:ExpensePlanFilters,p:ExpensePagination):Observable<ExpensePlanPage>{let params=new HttpParams().set('status',f.status).set('page',p.page).set('size',p.size);if(f.payerMemberId)params=params.set('payerMemberId',f.payerMemberId);if(f.participantMemberId)params=params.set('participantMemberId',f.participantMemberId);if(f.frequency)params=params.set('frequency',f.frequency);if(f.nextOccurrenceFrom)params=params.set('nextOccurrenceFrom',f.nextOccurrenceFrom);if(f.nextOccurrenceTo)params=params.set('nextOccurrenceTo',f.nextOccurrenceTo);return this.http.get<unknown>(this.base(h),{params}).pipe(map(mapExpensePlanPage),normalizeExpenseHttpError());}
+ get(h:HouseholdRef,id:string){return this.http.get<unknown>(`${this.base(h)}/${id}`).pipe(map(mapExpensePlan),normalizeExpenseHttpError());}
+ create(h:HouseholdRef,c:CreateExpensePlanCommand){const split=c.template.split.type==='EQUAL'?{type:'EQUAL',memberIds:c.template.split.memberIds}:c.template.split.type==='EXACT'?{type:'EXACT',allocations:c.template.split.allocations.map(a=>({memberId:a.memberId,amount:a.amount.toDecimal()}))}:{type:'PERCENTAGE',allocations:c.template.split.allocations.map(a=>({memberId:a.memberId,percentage:a.percentage.toDecimal()}))};const body:Record<string,unknown>={template:{description:c.template.description,amount:c.template.amount.toDecimal(),currency:c.template.amount.currency,payerMemberId:c.template.payerMemberId,categoryId:c.template.categoryId,split},schedule:{frequency:c.frequency,startDate:c.startDate,zoneId:c.zoneId},reminderDaysBefore:c.reminderDaysBefore};if(c.endCondition)body['endCondition']=c.endCondition.type==='UNTIL_DATE'?{type:c.endCondition.type,endDate:c.endCondition.endDate}:{type:c.endCondition.type,totalOccurrences:c.endCondition.totalOccurrences};return this.http.post<unknown>(this.base(h),body).pipe(map(mapExpensePlan),normalizeExpenseHttpError());}
+ pause(h:HouseholdRef,id:string,version:number,reason?:string){return this.http.post<unknown>(`${this.base(h)}/${id}/pause`,{version,...(reason?{reason}:{})}).pipe(map(mapExpensePlan),normalizeExpenseHttpError());}
+ reactivate(h:HouseholdRef,id:string,version:number){return this.http.post<unknown>(`${this.base(h)}/${id}/reactivate`,{version}).pipe(map(mapExpensePlan),normalizeExpenseHttpError());}
+ cancel(h:HouseholdRef,id:string,version:number,reason:string){return this.http.post<unknown>(`${this.base(h)}/${id}/cancel`,{version,reason}).pipe(map(mapExpensePlan),normalizeExpenseHttpError());}
+ forecast(h:HouseholdRef,from?:string,to?:string):Observable<ExpensePlanForecast>{let params=new HttpParams();if(from)params=params.set('from',from);if(to)params=params.set('to',to);return this.http.get<unknown>(`${this.base(h)}/forecast`,{params}).pipe(map(mapExpensePlanForecast),normalizeExpenseHttpError());}
+ private base(h:string){return`${this.apiUrl}/households/${h}/expense-plans`;}
+}

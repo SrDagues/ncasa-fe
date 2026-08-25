@@ -10,7 +10,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { AuthStore } from '../auth';
 import { EVENT_CATEGORIES, EVENTS } from '../calendar';
-import { DashboardFinancialSnapshot, GetDashboardFinancialSnapshotUseCase, ListRecentExpensesUseCase, RecentExpenseSummary } from '../expenses';
+import { DashboardFinancialSnapshot, DashboardUpcomingExpense, GetDashboardFinancialSnapshotUseCase, GetDashboardUpcomingExpenseUseCase, ListRecentExpensesUseCase, RecentExpenseSummary } from '../expenses';
 import { HouseholdStore } from '../household';
 
 @Component({ selector: 'app-dashboard', standalone: true,
@@ -21,6 +21,7 @@ export class DashboardComponent {
   private readonly auth = inject(AuthStore);
   private readonly listRecent = inject(ListRecentExpensesUseCase);
   private readonly getFinancialSnapshot = inject(GetDashboardFinancialSnapshotUseCase);
+  private readonly getUpcomingExpense = inject(GetDashboardUpcomingExpenseUseCase);
   readonly members = this.household.members;
   readonly householdName = computed(() => this.household.active()?.name ?? '—');
   readonly currentUserEmail = computed(() => this.auth.currentUser()?.email ?? '');
@@ -28,11 +29,13 @@ export class DashboardComponent {
   readonly recentState = signal<'initial' | 'loading' | 'ready' | 'empty' | 'error'>('initial');
   readonly financial = signal<DashboardFinancialSnapshot | null>(null);
   readonly financialState = signal<'initial' | 'loading' | 'ready' | 'empty' | 'error'>('initial');
+  readonly upcomingExpense=signal<DashboardUpcomingExpense|null>(null);readonly upcomingExpenseState=signal<'initial'|'loading'|'ready'|'empty'|'error'>('initial');
   readonly upcomingEvents = [...EVENTS].sort((a, b) => a.day - b.day).slice(0, 3);
   private requestId = 0;
   private financialRequestId = 0;
+  private upcomingRequestId=0;
 
-  constructor() { effect(() => { const active = this.household.active(); const summary = this.household.households().find(item => item.id === active?.id); if (active && summary) { void this.loadRecent(active.id); void this.loadFinancial(active.id, summary.currentMemberId); } else { this.recentExpenses.set([]); this.recentState.set('initial'); this.financial.set(null); this.financialState.set('initial'); } }); }
+  constructor() { effect(() => { const active = this.household.active(); const summary = this.household.households().find(item => item.id === active?.id); if (active && summary) { void this.loadRecent(active.id); void this.loadFinancial(active.id, summary.currentMemberId);void this.loadUpcoming(active.id); } else { this.recentExpenses.set([]); this.recentState.set('initial'); this.financial.set(null); this.financialState.set('initial');this.upcomingExpense.set(null);this.upcomingExpenseState.set('initial'); } }); }
 
   memberName(id: string): string { return this.household.active()?.members.find(member => member.id === id)?.email ?? `${id.slice(0, 8)}…`; }
   eventDot(key: string): string { return EVENT_CATEGORIES.find(category => category.key === key)?.dot ?? 'bg-ncasa-sage'; }
@@ -46,5 +49,7 @@ export class DashboardComponent {
     try { const result = await firstValueFrom(this.getFinancialSnapshot.execute(householdId, memberId, localMonth())); if (requestId === this.financialRequestId) { this.financial.set(result); this.financialState.set(result.monthly.length || result.personal.length ? 'ready' : 'empty'); } }
     catch { if (requestId === this.financialRequestId) this.financialState.set('error'); }
   }
+  private async loadUpcoming(householdId:string){const request=++this.upcomingRequestId;this.upcomingExpenseState.set('loading');const from=localDate(0),to=localDate(90);try{const value=await firstValueFrom(this.getUpcomingExpense.execute(householdId,from,to,new Date().toISOString()));if(request===this.upcomingRequestId){this.upcomingExpense.set(value);this.upcomingExpenseState.set(value?'ready':'empty');}}catch{if(request===this.upcomingRequestId)this.upcomingExpenseState.set('error');}}
 }
 const localMonth = (): string => { const date = new Date(); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; };
+const localDate=(days:number)=>{const date=new Date();date.setDate(date.getDate()+days);return date.toISOString().slice(0,10);};

@@ -5,7 +5,7 @@ export type ExpenseId = string;
 export type HouseholdRef = string;
 export type MemberRef = string;
 export type ExpenseStatus = 'CONFIRMED' | 'VOIDED';
-export type ExpenseSource = 'MANUAL';
+export type ExpenseSource = 'MANUAL' | 'PLAN';
 export type ExpenseSplitType = 'EQUAL' | 'EXACT' | 'PERCENTAGE';
 export type ExpenseCategoryId = string;
 export type ExpenseCategoryStatus = 'ACTIVE' | 'ARCHIVED';
@@ -14,6 +14,26 @@ export type ExpenseDraftStatus = 'OPEN' | 'CONFIRMED' | 'DISCARDED';
 export type SettlementId = string;
 export type SettlementStatus = 'CONFIRMED' | 'VOIDED';
 export type FinancialCurrency = string;
+export type ExpensePlanId = string;
+export type ExpensePlanStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'COMPLETED';
+export type ExpensePlanFrequency = 'ONCE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type ExpensePlanEndCondition =
+  | { readonly type: 'UNTIL_DATE'; readonly endDate: string }
+  | { readonly type: 'AFTER_OCCURRENCES'; readonly totalOccurrences: number };
+export type ExpensePlanTemplateSplit =
+  | { readonly type: 'EQUAL'; readonly memberIds: readonly MemberRef[] }
+  | { readonly type: 'EXACT'; readonly allocations: readonly { readonly memberId: MemberRef; readonly amount: Money }[] }
+  | { readonly type: 'PERCENTAGE'; readonly allocations: readonly PercentageAllocation[] };
+export interface ExpensePlanTemplate { readonly description: string; readonly amount: Money; readonly payerMemberId: MemberRef; readonly categoryId: ExpenseCategoryId | null; readonly split: ExpensePlanTemplateSplit; }
+export interface ExpensePlan {
+  readonly id: ExpensePlanId; readonly householdId: HouseholdRef; readonly createdByMemberId: MemberRef;
+  readonly template: ExpensePlanTemplate; readonly frequency: ExpensePlanFrequency; readonly startDate: string;
+  readonly zoneId: string; readonly endCondition: ExpensePlanEndCondition; readonly reminderDaysBefore: number;
+  readonly materializedOccurrences: number; readonly nextOccurrence: string | null; readonly nextOccurrenceDueAt: string | null;
+  readonly nextReminderAt: string | null; readonly status: ExpensePlanStatus; readonly pauseReason: string | null;
+  readonly cancellationReason: string | null; readonly createdAt: string; readonly updatedAt: string;
+  readonly pausedAt: string | null; readonly cancelledAt: string | null; readonly completedAt: string | null; readonly version: number;
+}
 
 export interface MonthlyMemberPosition { readonly memberId: MemberRef; readonly paid: Money; readonly allocated: Money; readonly net: Money; }
 export interface CurrentMemberPosition extends MonthlyMemberPosition { readonly settledOut: Money; readonly settledIn: Money; }
@@ -76,11 +96,32 @@ export interface Expense {
   readonly allocations: readonly ExpenseAllocation[];
   readonly status: ExpenseStatus;
   readonly source: ExpenseSource;
+  readonly sourcePlanId?: ExpensePlanId | null;
+  readonly occurrenceKey?: string | null;
   readonly voidReason: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly voidedAt: string | null;
   readonly version: number;
+}
+
+export class ExpensePlanValidationError extends Error {}
+export interface ExpensePlanIntent {
+  readonly template: ExpensePlanTemplate; readonly frequency: ExpensePlanFrequency; readonly startDate: string;
+  readonly zoneId: string; readonly endCondition?: ExpensePlanEndCondition; readonly reminderDaysBefore: number;
+}
+export function validateExpensePlanIntent(intent: ExpensePlanIntent, todayInZone: string): void {
+  if (!intent.template.description.trim() || intent.template.description.trim().length > 240) throw new ExpensePlanValidationError('Invalid description');
+  if (!intent.template.amount.isPositive()) throw new ExpensePlanValidationError('Invalid amount');
+  if (!intent.zoneId.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(intent.startDate) || intent.startDate < todayInZone) throw new ExpensePlanValidationError('Invalid schedule');
+  if (!Number.isInteger(intent.reminderDaysBefore) || intent.reminderDaysBefore < 0 || intent.reminderDaysBefore > 30) throw new ExpensePlanValidationError('Invalid reminder');
+  if (intent.frequency === 'ONCE' && intent.endCondition) throw new ExpensePlanValidationError('One-time plans have no end condition');
+  if (intent.frequency !== 'ONCE' && !intent.endCondition) throw new ExpensePlanValidationError('Recurring plans require an end condition');
+  if (intent.endCondition?.type === 'UNTIL_DATE' && intent.endCondition.endDate < intent.startDate) throw new ExpensePlanValidationError('End date precedes start');
+  if (intent.endCondition?.type === 'AFTER_OCCURRENCES' && (!Number.isInteger(intent.endCondition.totalOccurrences) || intent.endCondition.totalOccurrences < 1)) throw new ExpensePlanValidationError('Invalid occurrence count');
+  if (intent.template.split.type === 'EXACT') validateExactSplit(intent.template.amount, intent.template.split.allocations);
+  if (intent.template.split.type === 'PERCENTAGE') materializePercentageSplit(intent.template.amount, intent.template.split.allocations);
+  if (intent.template.split.type === 'EQUAL') splitEqually(intent.template.amount, intent.template.split.memberIds);
 }
 
 export class ExpenseSplitError extends Error {}

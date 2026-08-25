@@ -8,7 +8,7 @@ import { CardComponent } from '../../../shared/components/card/card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { HouseholdStore } from '../../household';
-import { ExpenseStatus } from '../domain';
+import { ExpenseSource, ExpenseStatus } from '../domain';
 import { ExpenseSplitType } from '../domain';
 import { ExpenseListStore } from '../presentation/list/expense-list.store';
 import { ExpensesSectionNavComponent } from '../presentation/navigation/expenses-section-nav.component';
@@ -29,6 +29,8 @@ export class ExpenseListComponent {
   protected readonly participantMemberId = signal('');
   protected readonly category = signal('');
   protected readonly splitType = signal<ExpenseSplitType | ''>('');
+  protected readonly source = signal<ExpenseSource | ''>('');
+  protected readonly planId = signal('');
   protected readonly page = signal(0);
   protected readonly dateError = signal(false);
   private householdId: string | null = this.household.active()?.id ?? null;
@@ -40,6 +42,7 @@ export class ExpenseListComponent {
       this.from.set(params.get('from') ?? ''); this.to.set(params.get('to') ?? '');
       this.payerMemberId.set(params.get('payerMemberId') ?? ''); this.participantMemberId.set(params.get('participantMemberId') ?? '');
       this.category.set(params.get('category') ?? ''); const split=params.get('splitType');this.splitType.set(split==='EQUAL'||split==='EXACT'||split==='PERCENTAGE'?split:'');
+      const source=params.get('source');this.source.set(source==='MANUAL'||source==='PLAN'?source:'');this.planId.set(params.get('planId')??'');
       this.page.set(Math.max(0, Number(params.get('page')) || 0)); this.reload();
     });
     effect(() => {
@@ -68,13 +71,14 @@ export class ExpenseListComponent {
     const payer = members.some(member => member.id === this.payerMemberId()) ? this.payerMemberId() : undefined;
     const participant = members.some(member => member.id === this.participantMemberId()) ? this.participantMemberId() : undefined;
     const category = this.category()==='uncategorized' ? {kind:'UNCATEGORIZED' as const} : this.store.categories().some(item=>item.id===this.category()) ? {kind:'CATEGORY' as const,categoryId:this.category()} : {kind:'ALL' as const};
-    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined, payerMemberId: payer, participantMemberId: participant, category, splitType:this.splitType()||undefined }, this.page());
+    void this.store.load(householdId, { status: this.status(), from: this.from() || undefined, to: this.to() || undefined, payerMemberId: payer, participantMemberId: participant, category, splitType:this.splitType()||undefined,source:this.source()||undefined,planId:this.planId()||undefined }, this.page());
   }
   private navigate(page: number): Promise<boolean> {
     return this.router.navigate([], { relativeTo: this.route, queryParams: {
       status: this.status(), from: this.from() || null, to: this.to() || null, page: page || null,
       payerMemberId: this.payerMemberId() || null, participantMemberId: this.participantMemberId() || null,
       category: this.category() || null, splitType: this.splitType() || null,
+      source:this.source()||null,planId:this.planId()||null,
     }, queryParamsHandling: 'merge' });
   }
   protected categoryName(id:string|null):string{return id?this.store.categories().find(item=>item.id===id)?.name??`${id.slice(0,8)}…`:'expenseCategories.uncategorized';}

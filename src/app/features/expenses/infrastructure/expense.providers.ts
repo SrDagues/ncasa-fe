@@ -9,6 +9,9 @@ import { HttpExpenseCategoryGateway } from './http/http-expense-category.gateway
 import { HttpExpenseDraftGateway } from './http/http-expense-draft.gateway';
 import { ArchiveExpenseCategoryUseCase, CreateExpenseCategoryUseCase, ListExpenseCategoriesUseCase, RenameExpenseCategoryUseCase } from '../application/use-cases/expense-category.use-cases';
 import { DiscardExpenseDraftUseCase, GetExpenseDraftUseCase, ListExpenseDraftsUseCase, SaveAndConfirmExpenseDraftUseCase, SaveExpenseDraftUseCase } from '../application/use-cases/expense-draft.use-cases';
+import { CancelExpensePlanUseCase, CreateExpensePlanUseCase, ForecastExpensePlansUseCase, GetDashboardUpcomingExpenseUseCase, GetExpensePlanUseCase, ListExpensePlansUseCase, PauseExpensePlanUseCase, ReactivateExpensePlanUseCase } from '../application/use-cases/expense-plan.use-cases';
+import { HttpExpensePlanGateway } from './http/http-expense-plan.gateway';
+import { BrowserTimeZoneGateway } from './browser/browser-time-zone.gateway';
 
 export function provideExpenses(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -16,6 +19,8 @@ export function provideExpenses(): EnvironmentProviders {
     { provide: HttpFinancialGateway, useFactory: () => new HttpFinancialGateway(inject(HttpClient), environment.apiUrl) },
     { provide: HttpExpenseCategoryGateway, useFactory: () => new HttpExpenseCategoryGateway(inject(HttpClient), environment.apiUrl) },
     { provide: HttpExpenseDraftGateway, useFactory: () => new HttpExpenseDraftGateway(inject(HttpClient), environment.apiUrl) },
+    { provide: HttpExpensePlanGateway, useFactory: () => new HttpExpensePlanGateway(inject(HttpClient), environment.apiUrl) },
+    BrowserTimeZoneGateway,
     { provide: ListExpensesUseCase, useFactory: () => new ListExpensesUseCase(inject(HttpExpenseGateway)) },
     { provide: GetExpenseUseCase, useFactory: () => new GetExpenseUseCase(inject(HttpExpenseGateway)) },
     { provide: CreateExpenseUseCase, useFactory: () => new CreateExpenseUseCase(inject(HttpExpenseGateway)) },
@@ -39,5 +44,13 @@ export function provideExpenses(): EnvironmentProviders {
     { provide: CreateSettlementUseCase, useFactory: () => new CreateSettlementUseCase(inject(HttpFinancialGateway)) },
     { provide: VoidSettlementUseCase, useFactory: () => new VoidSettlementUseCase(inject(HttpFinancialGateway)) },
     { provide: GetDashboardFinancialSnapshotUseCase, useFactory: () => new GetDashboardFinancialSnapshotUseCase(inject(GetMonthlyFinancialSummaryUseCase), inject(GetDebtSummaryUseCase)) },
+    { provide: ListExpensePlansUseCase, useFactory: () => new ListExpensePlansUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: GetExpensePlanUseCase, useFactory: () => new GetExpensePlanUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: CreateExpensePlanUseCase, useFactory: () => new CreateExpensePlanUseCase(inject(HttpExpensePlanGateway), inject(BrowserTimeZoneGateway)) },
+    { provide: PauseExpensePlanUseCase, useFactory: () => new PauseExpensePlanUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: ReactivateExpensePlanUseCase, useFactory: () => new ReactivateExpensePlanUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: CancelExpensePlanUseCase, useFactory: () => new CancelExpensePlanUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: ForecastExpensePlansUseCase, useFactory: () => new ForecastExpensePlansUseCase(inject(HttpExpensePlanGateway)) },
+    { provide: GetDashboardUpcomingExpenseUseCase, useFactory: () => new GetDashboardUpcomingExpenseUseCase(inject(ForecastExpensePlansUseCase), inject(GetExpensePlanUseCase)) },
   ]);
 }
