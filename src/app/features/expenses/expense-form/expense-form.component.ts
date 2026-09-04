@@ -1,93 +1,44 @@
-import { Component, computed, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { SelectComponent } from '../../../shared/components/select/select.component';
-import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
-import { AlertComponent } from '../../../shared/components/alert/alert.component';
-import { CATEGORIES } from '..';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { form, FormField, maxLength } from '@angular/forms/signals';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { NotificationService } from '../../../shared/components/notification/notification.service';
 import { HouseholdStore } from '../../household';
+import { ExpenseDraftSnapshot } from '../application/expense.models';
+import { ExpenseDraft, Money, MoneyError, Percentage, distributePercentagesEqually, materializePercentageSplit, splitEqually, validateExactSplit } from '../domain';
+import { ExpenseFormStore } from '../presentation/form/expense-form.store';
 
-@Component({
-  selector: 'app-expense-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IconComponent,
-    CardComponent,
-    ButtonComponent,
-    FormFieldComponent,
-    InputComponent,
-    SelectComponent,
-    CheckboxComponent,
-    AlertComponent,
-    TranslatePipe,
-  ],
-  templateUrl: './expense-form.component.html',
-})
+type EditorSplitType = 'EQUAL' | 'EXACT' | 'PERCENTAGE';
+interface ExpenseFormModel { description: string; amount: string; expenseDate: string; payerMemberId: string; categoryId: string; splitType: EditorSplitType; }
+
+@Component({ selector: 'app-expense-form', standalone: true, imports: [FormField, RouterLink, TranslatePipe, ButtonComponent, CardComponent, IconComponent], templateUrl: './expense-form.component.html' })
 export class ExpenseFormComponent {
-  private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
-  private readonly household = inject(HouseholdStore);
-  readonly isTicketMode: boolean;
-  readonly members = this.household.members;
-
-  concept = '';
-  amount = '';
-  category = 'supermercado';
-  paidBy = 'm1';
-  date = '';
-  splitType = 'igual';
-  includedIds = new Set<string>();
-
-  readonly categoryOptions = computed(() => {
-    this.translate.currentLang();
-    return CATEGORIES.map((c) => ({
-      value: c.key,
-      label: this.translate.instant(c.labelKey),
-    }));
-  });
-
-  readonly memberOptions = computed(() => this.members().map((m) => ({ value: m.id, label: m.email ?? `#${m.accountId}` })));
-
-  readonly splitOptions = [
-    { key: 'igual', labelKey: 'expenses.form.splitOptions.equal' },
-    { key: 'porcentaje', labelKey: 'expenses.form.splitOptions.percentage' },
-    { key: 'partes', labelKey: 'expenses.form.splitOptions.shares' },
-    { key: 'importe', labelKey: 'expenses.form.splitOptions.exact' },
-  ];
-
-  constructor() {
-    this.isTicketMode = this.router.url.includes('tickets');
-    if (this.isTicketMode) {
-      this.concept = 'Compra supermercado';
-      this.amount = '48.20';
-      this.category = 'supermercado';
-    }
-    effect(() => {
-      const members = this.members();
-      this.includedIds = new Set(members.map(member => member.id));
-      this.paidBy = members[0]?.id ?? '';
-    });
-  }
-
-  isIncluded(id: string): boolean {
-    return this.includedIds.has(id);
-  }
-
-  toggleMember(id: string, checked: boolean) {
-    if (checked) this.includedIds.add(id);
-    else this.includedIds.delete(id);
-  }
-
-  onSubmit(e: Event) {
-    e.preventDefault();
-    this.router.navigate(['/app/expenses']);
-  }
+  private readonly router=inject(Router);private readonly route=inject(ActivatedRoute);private readonly translate=inject(TranslateService);private readonly notifications=inject(NotificationService);private readonly confirms=inject(ConfirmDialogService);
+  protected readonly household=inject(HouseholdStore);protected readonly store=inject(ExpenseFormStore);private readonly draftId=this.route.snapshot.paramMap.get('draftId');protected readonly draftMode=Boolean(this.route.snapshot.data['draft']);
+  private readonly model=signal<ExpenseFormModel>({description:'',amount:'',expenseDate:localToday(),payerMemberId:'',categoryId:'',splitType:'EQUAL'});protected readonly expenseForm=form(this.model,schema=>maxLength(schema.description,240));
+  protected readonly included=signal<ReadonlySet<string>>(new Set());protected readonly exactAmounts=signal<Readonly<Record<string,string>>>({});protected readonly percentages=signal<Readonly<Record<string,string>>>({});protected readonly errors=signal<Readonly<Record<string,string>>>({});protected readonly members=this.household.members;
+  protected readonly activeCategories=computed(()=>this.store.categories().filter(item=>item.status==='ACTIVE'));
+  protected readonly preview=computed(()=>{try{const total=Money.fromDecimal(this.model().amount,'EUR');return this.model().splitType==='PERCENTAGE'?materializePercentageSplit(total,[...this.included()].map(memberId=>({memberId,percentage:Percentage.fromDecimal(this.percentages()[memberId]??'')}))):splitEqually(total,[...this.included()]);}catch{return[];}});
+  protected readonly exactBalance=computed(()=>{try{const total=Money.fromDecimal(this.model().amount,'EUR');let assigned=Money.fromMinorUnits(0n,'EUR');for(const id of this.included())assigned=assigned.add(Money.fromDecimal(this.exactAmounts()[id]??'0','EUR'));return total.minorUnits-assigned.minorUnits;}catch{return null;}});protected readonly exactBalanceText=computed(()=>this.exactBalance()===null?'':Money.fromMinorUnits(this.exactBalance()!,'EUR').toDecimal());protected readonly exactBalanced=computed(()=>this.exactBalance()===0n);
+  protected readonly percentageBalance=computed(()=>{try{return Percentage.totalBasisPoints-[...this.included()].reduce((sum,id)=>sum+Percentage.fromDecimal(this.percentages()[id]??'').basisPoints,0n);}catch{return null;}});protected readonly percentageBalanceText=computed(()=>{const value=this.percentageBalance();if(value===null)return '';const negative=value<0n;const absolute=negative?-value:value;return `${negative?'-':''}${absolute/100n}.${(absolute%100n).toString().padStart(2,'0')}`;});protected readonly percentageBalanced=computed(()=>this.percentageBalance()===0n);
+  private initializedHousehold:string|null=null;private hydratedDraftVersion:number|null=null;
+  constructor(){effect(()=>{const active=this.household.active();if(!active||active.id===this.initializedHousehold)return;this.initializedHousehold=active.id;const memberIds=active.members.filter(member=>member.status==='ACTIVE').map(member=>member.id);const summary=this.household.households().find(item=>item.id===active.id);this.included.set(new Set(memberIds));this.model.update(value=>({...value,payerMemberId:summary?.currentMemberId??memberIds[0]??''}));this.initializePercentages();void this.store.loadCategories(active.id);if(this.draftId)void this.loadDraft(active.id,this.draftId);});}
+  protected toggleMember(id:string,checked:boolean){const next=new Set(this.included());checked?next.add(id):next.delete(id);this.included.set(next);if(this.model().splitType==='PERCENTAGE')this.initializePercentages();}protected setExact(id:string,value:string){this.exactAmounts.update(current=>({...current,[id]:value}));}protected setPercentage(id:string,value:string){this.percentages.update(current=>({...current,[id]:value}));}
+  protected changeSplit(type:EditorSplitType){this.model.update(value=>({...value,splitType:type}));if(type==='EXACT')this.exactAmounts.set(Object.fromEntries(splitEquallySafe(this.model().amount,[...this.included()]).map(item=>[item.memberId,item.amount.toDecimal()])));if(type==='PERCENTAGE')this.initializePercentages();}
+  protected memberName(id:string){return this.members().find(member=>member.id===id)?.email??`${id.slice(0,8)}…`;}protected categoryName(id:string){return this.store.categories().find(category=>category.id===id)?.name??id;}
+  protected async submit(event:Event){event.preventDefault();const command=this.buildCommand();const householdId=this.household.active()?.id;if(!command||!householdId)return;const created=await this.store.submit(householdId,command);if(created){this.notify('expenses.notifications.created');await this.router.navigate(['/app/expenses',created.id]);}else this.mergeServerErrors();}
+  protected async saveDraft(){const householdId=this.household.active()?.id;if(!householdId)return;const snapshot=this.buildSnapshot(false);if(!snapshot)return;const draft=await this.store.saveDraft(householdId,snapshot);if(draft){this.hydratedDraftVersion=draft.version;this.notify('expenseDrafts.saved');if(!this.draftId)await this.router.navigate(['/app/expenses/drafts',draft.id],{replaceUrl:true});}else this.mergeServerErrors();}
+  protected async confirmDraft(){const householdId=this.household.active()?.id;const snapshot=this.buildSnapshot(true);if(!householdId||!snapshot)return;const created=await this.store.confirmDraft(householdId,snapshot);if(created){this.notify('expenseDrafts.confirmed');await this.router.navigate(['/app/expenses',created.id]);}else this.mergeServerErrors();}
+  protected async discardDraft(){const draft=this.store.draft();const householdId=this.household.active()?.id;if(!draft||!householdId)return;const confirmed=await this.confirms.open({title:this.translate.instant('expenseDrafts.discardTitle'),message:this.translate.instant('expenseDrafts.discardMessage'),confirmLabel:this.translate.instant('expenseDrafts.discard'),cancelLabel:this.translate.instant('common.cancel'),variant:'destructive'});if(confirmed&&await this.store.discardDraft(householdId)){this.notify('expenseDrafts.discarded');await this.router.navigate(['/app/expenses/drafts']);}}
+  protected async reloadDraft(){const householdId=this.household.active()?.id;if(householdId&&this.draftId)await this.loadDraft(householdId,this.draftId);}
+  private buildCommand(){const snapshot=this.buildSnapshot(true);if(!snapshot||!snapshot.amount||!snapshot.description||!snapshot.expenseDate||!snapshot.payerMemberId||!snapshot.split)return null;return{description:snapshot.description,amount:snapshot.amount,expenseDate:snapshot.expenseDate,payerMemberId:snapshot.payerMemberId,categoryId:snapshot.categoryId??undefined,split:snapshot.split};}
+  private buildSnapshot(complete:boolean):ExpenseDraftSnapshot|null{const value=this.model();const errors:Record<string,string>={};const description=value.description.trim();if(complete&&!description)errors['description']='expenses.form.errors.descriptionRequired';else if(description.length>240)errors['description']='expenses.form.errors.descriptionLength';let amount:Money|null=null;if(value.amount){try{amount=Money.fromDecimal(value.amount,'EUR');if(!amount.isPositive())throw new MoneyError('positive');}catch{errors['amount']='expenses.form.errors.amount';}}else if(complete)errors['amount']='expenses.form.errors.amount';if(complete&&!value.expenseDate)errors['expenseDate']='expenses.form.errors.date';const activeMembers=this.members().filter(member=>member.status==='ACTIVE');if((complete||value.payerMemberId)&&!activeMembers.some(member=>member.id===value.payerMemberId))errors['payerMemberId']='expenses.form.errors.payer';if(this.included().size===0)errors['split']='expenses.form.errors.participants';let split:ExpenseDraftSnapshot['split']=null;if(!errors['split']){try{if(value.splitType==='EQUAL')split={type:'EQUAL',memberIds:[...this.included()]};else if(value.splitType==='EXACT'){if(!amount)throw new Error();const allocations=[...this.included()].map(memberId=>({memberId,amount:Money.fromDecimal(this.exactAmounts()[memberId]??'','EUR')}));validateExactSplit(amount,allocations);split={type:'EXACT',allocations};}else{const allocations=[...this.included()].map(memberId=>({memberId,percentage:Percentage.fromDecimal(this.percentages()[memberId]??'')}));if(amount)materializePercentageSplit(amount,allocations);else if(allocations.reduce((sum,item)=>sum+item.percentage.basisPoints,0n)!==Percentage.totalBasisPoints)throw new Error();split={type:'PERCENTAGE',allocations};}}catch{errors['split']=value.splitType==='PERCENTAGE'?'expenses.form.errors.percentageTotal':'expenses.form.errors.exactTotal';}}this.errors.set(errors);if(Object.keys(errors).length)return null;return{description:description||null,amount,currency:amount?'EUR':null,expenseDate:value.expenseDate||null,payerMemberId:value.payerMemberId||null,categoryId:value.categoryId||null,split};}
+  private async loadDraft(householdId:string,id:string){const draft=await this.store.loadDraft(householdId,id);if(!draft)return;if(draft.status==='CONFIRMED'&&draft.confirmedExpenseId){await this.router.navigate(['/app/expenses',draft.confirmedExpenseId],{replaceUrl:true});return;}this.hydrate(draft);}
+  private hydrate(draft:ExpenseDraft){if(this.hydratedDraftVersion===draft.version)return;this.hydratedDraftVersion=draft.version;const splitType=draft.split?.type??'EQUAL';this.model.set({description:draft.description??'',amount:draft.amount?.toDecimal()??'',expenseDate:draft.expenseDate??localToday(),payerMemberId:draft.payerMemberId??'',categoryId:draft.categoryId??'',splitType});const ids=draft.split?.type==='EQUAL'?draft.split.memberIds:draft.split?.allocations.map(item=>item.memberId)??[];if(ids.length)this.included.set(new Set(ids));if(draft.split?.type==='EXACT')this.exactAmounts.set(Object.fromEntries(draft.split.allocations.map(item=>[item.memberId,item.amount.toDecimal()])));if(draft.split?.type==='PERCENTAGE')this.percentages.set(Object.fromEntries(draft.split.allocations.map(item=>[item.memberId,item.percentage.toDecimal()])));}
+  private initializePercentages(){try{this.percentages.set(Object.fromEntries(distributePercentagesEqually([...this.included()]).map(item=>[item.memberId,item.percentage.toDecimal()])));}catch{this.percentages.set({});}}private mergeServerErrors(){if(this.store.error())this.errors.update(current=>({...current,...this.store.error()!.fields}));}private notify(key:string){this.notifications.show({id:key,tone:'positive',message:this.translate.instant(key),durationMs:5000});}
 }
+const splitEquallySafe=(amount:string,ids:readonly string[])=>{try{return splitEqually(Money.fromDecimal(amount,'EUR'),ids);}catch{return[];}};function localToday(){const now=new Date();const offset=now.getTimezoneOffset()*60_000;return new Date(now.getTime()-offset).toISOString().slice(0,10);}

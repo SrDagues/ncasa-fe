@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../icon/icon.component';
 
@@ -11,7 +11,9 @@ import { IconComponent } from '../icon/icon.component';
 export class SelectComponent {
   @Input() id?: string;
   @Input() options: any[] = [];
-  @Input() value?: string;
+  readonly value = model('');
   @Input() placeholder = '';
   @Input() disabled = false;
+
+  protected change(event: Event): void { this.value.set((event.target as HTMLSelectElement).value); }
 }

@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
-export type NotificationTone = 'warning' | 'error';
+export type NotificationTone = 'positive' | 'warning' | 'error';
 
 export interface NotificationAction {
   readonly label: string;

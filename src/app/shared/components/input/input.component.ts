@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, model, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../icon/icon.component';
 
@@ -12,7 +12,7 @@ export class InputComponent {
   @Input() id?: string;
   @Input() type = 'text';
   @Input() placeholder = '';
-  @Input() value = '';
+  readonly value = model('');
   @Input() icon?: string;
   @Input() trailingIcon?: string;
   @Input() prefix?: string;
@@ -20,13 +20,11 @@ export class InputComponent {
   @Input() disabled = false;
   @Input() autocomplete?: string;
 
-  @Output() valueChange = new EventEmitter<string>();
   @Output() trailingIconClick = new EventEmitter<void>();
 
   onInput(event: Event) {
     const target = event.target as HTMLInputElement;
-    this.value = target.value;
-    this.valueChange.emit(target.value);
+    this.value.set(target.value);
   }
 
   get classes(): string {
