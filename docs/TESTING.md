@@ -203,7 +203,8 @@ When E2E support is introduced, keep the suite small and prioritize:
 4. scan a receipt, review its draft and save the expense;
 5. invite a member;
 6. create a calendar event;
-7. settle household balances.
+7. settle household balances;
+8. review a notification, mark it read and open its expense plan in the correct household.
 
 Security authorization must also be tested on the backend; a frontend route guard is user experience,
 not enforcement.

@@ -30,3 +30,14 @@ export class LocalizedDatePipe implements PipeTransform {
     return new Intl.DateTimeFormat(this.language(), options).format(new Date(`${value}T12:00:00`));
   }
 }
+
+@Pipe({ name: 'localizedDateTime', pure: false })
+export class LocalizedDateTimePipe implements PipeTransform {
+  private readonly language = inject(LanguageService).currentLanguage;
+
+  transform(value: string): string {
+    return new Intl.DateTimeFormat(this.language(), {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    }).format(new Date(value));
+  }
+}

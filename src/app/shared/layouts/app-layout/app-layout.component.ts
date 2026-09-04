@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { IconComponent } from '../../components/icon/icon.component';
 import { LogoComponent } from '../../components/logo/logo.component';
-import { IconButtonComponent } from '../../components/icon-button/icon-button.component';
 import { AvatarComponent } from '../../components/avatar/avatar.component';
 import { LogoutUseCase } from '../../../features/auth/application/use-cases/logout.use-case';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageSwitcherComponent } from '../../components/language-switcher/language-switcher.component';
 import { AuthStore } from '../../../features/auth';
 import { HouseholdStore } from '../../../features/household';
+import { NotificationIndicatorComponent } from '../../../features/notifications';
 
 @Component({
   selector: 'app-app-layout',
@@ -21,7 +21,7 @@ import { HouseholdStore } from '../../../features/household';
     RouterLinkActive,
     IconComponent,
     LogoComponent,
-    IconButtonComponent,
+    NotificationIndicatorComponent,
     AvatarComponent,
     TranslatePipe,
     LanguageSwitcherComponent,

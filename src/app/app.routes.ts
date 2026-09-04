@@ -3,13 +3,14 @@ import { AuthLayout } from './shared/layouts/auth-layout/auth-layout';
 import { AppLayoutComponent } from './shared/layouts/app-layout/app-layout.component';
 import { authGuard, guestGuard } from './features/auth/presentation/auth.guards';
 import { provideExpenses } from './features/expenses';
+import { provideNotifications } from './features/notifications';
 
 export const routes: Routes = [
   {
     path: 'app',
     component: AppLayoutComponent,
     canActivate: [authGuard],
-    providers: [provideExpenses()],
+    providers: [provideExpenses(), provideNotifications()],
     children: [
       {
         path: 'dashboard',
@@ -32,6 +33,11 @@ export const routes: Routes = [
             (component) => component.CalendarComponent,
           ),
         data: { titleKey: 'metadata.calendar' },
+      },
+      {
+        path: 'notifications',
+        loadChildren: () => import('./features/notifications/notification.routes').then(module => module.NOTIFICATION_ROUTES),
+        data: { titleKey: 'metadata.notifications' },
       },
       {
         path: 'household',

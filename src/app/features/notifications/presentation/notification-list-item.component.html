@@ -1,0 +1,31 @@
+<article class="flex gap-3 rounded-2xl border p-3" [class.border-ncasa-coral]="notification().isUnread" [class.bg-ncasa-surface]="notification().isUnread">
+  <span class="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest">
+    <lucide-icon [name]="notification().kind === 'EXPENSE_PLAN_ATTENTION_REQUIRED' ? 'triangle-alert' : 'calendar'" [size]="18" aria-hidden="true" />
+  </span>
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-2 text-xs text-ncasa-muted">
+      <span>{{ kindKey() | translate }}</span>
+      @if (notification().isUnread) {
+        <span class="font-semibold text-ncasa-coral-dark">{{ 'persistentNotifications.unread' | translate }}</span>
+      }
+    </div>
+    <a [href]="target()" (click)="open($event)" class="mt-1 block rounded font-semibold text-ncasa-charcoal hover:text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest">
+      {{ notification().subject }}
+    </a>
+    <p class="mt-1 text-sm text-ncasa-muted">
+      {{ notification().amount | localizedCurrency }} · {{ notification().occurrenceDate | localizedDate }}
+      · {{ 'persistentNotifications.occurrence' | translate:{ number: notification().occurrenceNumber, total: notification().totalOccurrences || '—' } }}
+    </p>
+    @if (notification().attentionReason) {
+      <p class="mt-2 text-sm text-ncasa-coral-dark">{{ notification().attentionReason }}</p>
+    }
+    <p class="mt-2 text-xs text-ncasa-muted">{{ notification().createdAt | localizedDateTime }}</p>
+  </div>
+  @if (notification().isUnread) {
+    <button type="button" (click)="markRead.emit(notification())" [disabled]="readPending()"
+      [attr.aria-label]="'persistentNotifications.markOne' | translate:{ subject: notification().subject }"
+      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ncasa-forest hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest disabled:opacity-50">
+      <lucide-icon name="check" [size]="18" aria-hidden="true" />
+    </button>
+  }
+</article>
