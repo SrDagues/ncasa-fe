@@ -10,6 +10,31 @@ import { NotificationInboxStore } from './notification-inbox.store';
 import { NotificationTargetCoordinator } from './notification-target.coordinator';
 
 describe('NotificationIndicatorComponent', () => {
+  it('keeps the preview inside the mobile viewport and restores the anchored popover on larger screens', () => {
+    const store = {
+      unreadCount: signal(0), countState: signal('ready'), preview: signal(null), previewState: signal('empty'),
+      previewError: signal(null), pendingIds: signal(new Set<string>()), markAllPending: signal(false),
+      initialize: vi.fn(), loadUnreadCount: vi.fn(), loadPreview: vi.fn(), markRead: vi.fn(), markAllRead: vi.fn(),
+    };
+    TestBed.configureTestingModule({ imports: [NotificationIndicatorComponent], providers: [
+      provideRouter([]), provideTranslateService({ fallbackLang: 'es', lang: 'es' }),
+      { provide: LanguageService, useValue: { currentLanguage: signal('es') } },
+      { provide: NotificationInboxStore, useValue: store },
+      { provide: NotificationTargetCoordinator, useValue: { open: vi.fn(), notifyReadFailure: vi.fn(), notifyMarkAllFailure: vi.fn() } },
+    ] });
+    TestBed.inject(TranslateService).setTranslation('es', es);
+    const fixture = TestBed.createComponent(NotificationIndicatorComponent); fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('#notification-preview') as HTMLElement;
+    expect([...preview.classList]).toEqual(expect.arrayContaining([
+      'fixed', 'inset-x-3', 'max-h-[calc(100dvh-9rem)]', 'overflow-y-auto',
+      'sm:absolute', 'sm:left-auto', 'sm:right-0', 'sm:w-96', 'lg:max-h-[calc(100dvh-5.5rem)]',
+    ]));
+  });
+
   it('shows an exact accessible count, caps the visual badge and loads the preview when opened', () => {
     const store = {
       unreadCount: signal(120), countState: signal('ready'), preview: signal(null), previewState: signal('empty'),
