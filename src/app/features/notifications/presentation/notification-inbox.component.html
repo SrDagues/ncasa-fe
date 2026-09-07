@@ -1,0 +1,37 @@
+<section class="flex flex-col gap-6">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="text-3xl font-semibold text-ncasa-forest">{{ 'persistentNotifications.title' | translate }}</h1><p class="text-sm text-ncasa-muted">{{ 'persistentNotifications.subtitle' | translate }}</p></div>
+    @if (store.unreadCount() > 0) {
+      <app-button variant="secondary" (click)="markAll()" [disabled]="store.markAllPending()">{{ 'persistentNotifications.markAll' | translate }}</app-button>
+    }
+  </header>
+
+  <div class="flex gap-2" role="group" [attr.aria-label]="'persistentNotifications.filterLabel' | translate">
+    <button type="button" (click)="filter(false)" [attr.aria-pressed]="!store.unreadOnly()" class="rounded-full border px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ncasa-forest" [class.bg-ncasa-forest]="!store.unreadOnly()" [class.text-ncasa-cream]="!store.unreadOnly()">{{ 'persistentNotifications.all' | translate }}</button>
+    <button type="button" (click)="filter(true)" [attr.aria-pressed]="store.unreadOnly()" class="rounded-full border px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ncasa-forest" [class.bg-ncasa-forest]="store.unreadOnly()" [class.text-ncasa-cream]="store.unreadOnly()">{{ 'persistentNotifications.onlyUnread' | translate }}</button>
+  </div>
+
+  @if (store.pageState() === 'loading' || store.pageState() === 'initial') {
+    <p role="status" class="py-12 text-center text-ncasa-muted">{{ 'persistentNotifications.loading' | translate }}</p>
+  } @else if (store.pageState() === 'error') {
+    <app-empty-state icon="triangle-alert" [title]="'persistentNotifications.errors.load' | translate" [description]="'persistentNotifications.errors.loadDescription' | translate">
+      <app-button (click)="store.loadPage()">{{ 'common.retry' | translate }}</app-button>
+    </app-empty-state>
+  } @else if (store.pageState() === 'empty') {
+    <app-empty-state icon="bell" [title]="(store.unreadOnly() ? 'persistentNotifications.emptyUnread' : 'persistentNotifications.empty') | translate" [description]="(store.unreadOnly() ? 'persistentNotifications.emptyUnreadDescription' : 'persistentNotifications.emptyDescription') | translate" />
+  } @else {
+    <ul class="space-y-3">
+      @for (notification of store.page()?.items || []; track notification.id) {
+        <li><app-notification-list-item [notification]="notification" [readPending]="store.pendingIds().has(notification.id)" (markRead)="mark($event)" (openNotification)="activate($event)" /></li>
+      }
+    </ul>
+  }
+
+  @if ((store.page()?.totalPages || 0) > 1) {
+    <nav class="flex items-center justify-between gap-4" [attr.aria-label]="'persistentNotifications.pagination.label' | translate">
+      <app-button variant="secondary" (click)="previous()" [disabled]="store.page()?.page === 0 || store.pageState() === 'loading'">{{ 'persistentNotifications.pagination.previous' | translate }}</app-button>
+      <p class="text-sm text-ncasa-muted">{{ 'persistentNotifications.pagination.summary' | translate:{ page: (store.page()?.page || 0) + 1, pages: store.page()?.totalPages, total: store.page()?.totalElements } }}</p>
+      <app-button variant="secondary" (click)="next()" [disabled]="(store.page()?.page || 0) + 1 >= (store.page()?.totalPages || 0) || store.pageState() === 'loading'">{{ 'persistentNotifications.pagination.next' | translate }}</app-button>
+    </nav>
+  }
+</section>

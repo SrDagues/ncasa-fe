@@ -9,6 +9,8 @@ contributors and coding agents.
 | [Testing](./TESTING.md) | Adding, fixing, refactoring or reviewing behavior |
 | [Angular guidelines](./ANGULAR_GUIDELINES.md) | Changing components, templates, forms, styles or accessibility |
 | [Internationalization](./I18N.md) | Adding or changing user-facing copy, locales or formatting |
+| [Notification inbox RFC](./rfcs/RFC-0001-notification-inbox-ui.md) | Implementing or extending persistent notifications |
+| [Notification inbox ADR](./decisions/ADR-0005-persistent-notification-inbox.md) | Changing notification boundaries, refresh or navigation |
 
 The root `AGENTS.md` contains the short mandatory rules Codex loads automatically. These documents
 contain the rationale, examples and decision criteria. If code and documentation disagree, do not

@@ -22,8 +22,8 @@ reclassifications. The backend remains authoritative for persistence, permission
 Expense plans are a separate aggregate from materialized expenses. The frontend models their finite
 schedule, template and lifecycle for validation and presentation, but consumes forecasts from the backend
 instead of generating occurrences locally. Browser time-zone discovery is isolated behind an application
-port. Reminder banners are contextual projections of `nextReminderAt`; notification delivery and durable
-read state remain outside the frontend until a notification API exists.
+port. Reminder banners are contextual projections of `nextReminderAt`. Durable notification delivery and read state
+belong to the Notifications context, which consumes the account-scoped API without importing the Expenses domain.
 
 ## 2. Bounded contexts
 
@@ -37,6 +37,7 @@ boundary is needed.
 | `expenses` | Expenses, categories, payer, participants, split rules, balances and settlements | OCR extraction |
 | `ticket-ingestion` | File selection, upload, OCR status, extracted fields and creation of an expense draft | Final expense persistence |
 | `calendar` | Events, tasks, dates, recurrence when introduced and calendar views | Expense settlement |
+| `notifications` | Persistent account inbox, unread state and navigation intents | Producing plan events or ephemeral UI toasts |
 | `dashboard` | Read-only composition/projection of data exposed by other contexts | New business rules duplicated from those contexts |
 
 Use the same term consistently in code, tests, routes and UI. If the backend and product use different
