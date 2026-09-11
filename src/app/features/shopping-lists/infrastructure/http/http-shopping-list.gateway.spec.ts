@@ -15,6 +15,20 @@ describe('HttpShoppingListGateway', () => {
   });
   afterEach(() => http.verify());
 
+  it('loads the active collection with its ETag', () => {
+    gateway.list('h1').subscribe(result => expect(result).toEqual({ kind: 'loaded', lists: [list], etag: '"collection-1"' }));
+    const request = http.expectOne('/api/households/h1/shopping-lists');
+    expect(request.request.method).toBe('GET');
+    request.flush([list], { headers: { ETag: '"collection-1"' } });
+  });
+
+  it('uses the collection ETag and represents a 304', () => {
+    gateway.list('h1', false, '"collection-1"').subscribe(result => expect(result).toEqual({ kind: 'not-modified' }));
+    const request = http.expectOne('/api/households/h1/shopping-lists');
+    expect(request.request.headers.get('If-None-Match')).toBe('"collection-1"');
+    request.flush(null, { status: 304, statusText: 'Not Modified' });
+  });
+
   it('loads a detail and retains its ETag for polling', () => {
     gateway.get('h1', 'l1').subscribe(result => expect(result).toMatchObject({ kind: 'loaded', etag: '"2-7"' }));
     const request = http.expectOne('/api/households/h1/shopping-lists/l1');
@@ -34,6 +48,15 @@ describe('HttpShoppingListGateway', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ contentRevision: 7, itemIds: ['i2', 'i1'] });
     request.flush(detail.list);
+  });
+
+  it('returns the item and exact list revision after adding a product', () => {
+    const updatedList = { ...list, contentRevision: 8 };
+    gateway.addItem('h1', 'l1', { name: ' Leche ', quantity: 2, unit: 'LITER', customUnit: '', note: '', responsibleMemberId: null })
+      .subscribe(result => expect(result).toEqual({ item, list: updatedList }));
+    const request = http.expectOne('/api/households/h1/shopping-lists/l1/items');
+    expect(request.request.body).toMatchObject({ name: 'Leche', quantity: 2, unit: 'LITER', note: null });
+    request.flush({ item, list: updatedList });
   });
 });
 

@@ -232,6 +232,11 @@ the backend's purpose-built series link options. Its own application ports remai
 imports either feature's internals. Calendar links use stable series IDs and shopping-list responsibility uses member
 IDs, while the backend remains authoritative for both references.
 
+The shopping-list store maintains separate active-list, selected-detail and trash representations. Conditional
+collection polling discovers lists created or removed by another session without coupling the selector to the
+15-second detail refresh. A household context revision prevents late responses from a previous household from
+overwriting current state.
+
 `ticket-ingestion` should produce an `ExpenseDraft` understood by the expenses application boundary.
 It should not save an expense by importing the concrete expenses repository.
 
