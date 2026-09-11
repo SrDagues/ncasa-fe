@@ -2,6 +2,7 @@ export const NOTIFICATION_KINDS = [
   'EXPENSE_PLAN_OCCURRENCE_APPROACHING',
   'EXPENSE_PLAN_LAST_INSTALLMENT_APPROACHING',
   'EXPENSE_PLAN_ATTENTION_REQUIRED',
+  'CALENDAR_TASK_COMPLETED',
 ] as const;
 
 export type NotificationKind = typeof NOTIFICATION_KINDS[number];
@@ -35,13 +36,15 @@ export interface InboxNotificationInput {
   readonly id: string;
   readonly kind: NotificationKind;
   readonly householdId: string;
-  readonly planId: string;
+  readonly planId: string | null;
+  readonly calendarEntryId?: string | null;
   readonly subject: string;
-  readonly amount: NotificationAmount;
+  readonly amount: NotificationAmount | null;
   readonly occurrenceDate: string;
-  readonly occurrenceNumber: number;
+  readonly occurrenceNumber: number | null;
   readonly totalOccurrences: number | null;
   readonly attentionReason: string | null;
+  readonly completedByMemberId?: string | null;
   readonly occurredAt: string;
   readonly createdAt: string;
   readonly readAt: string | null;
@@ -51,13 +54,15 @@ export class InboxNotification {
   readonly id: string;
   readonly kind: NotificationKind;
   readonly householdId: string;
-  readonly planId: string;
+  readonly planId: string | null;
+  readonly calendarEntryId: string | null;
   readonly subject: string;
-  readonly amount: NotificationAmount;
+  readonly amount: NotificationAmount | null;
   readonly occurrenceDate: string;
-  readonly occurrenceNumber: number;
+  readonly occurrenceNumber: number | null;
   readonly totalOccurrences: number | null;
   readonly attentionReason: string | null;
+  readonly completedByMemberId: string | null;
   readonly occurredAt: string;
   readonly createdAt: string;
   readonly readAt: string | null;
@@ -67,16 +72,23 @@ export class InboxNotification {
     this.kind = input.kind;
     if (!NOTIFICATION_KINDS.includes(this.kind)) throw new NotificationDomainError('Unknown notification kind');
     this.householdId = required(input.householdId, 100, 'Household id');
-    this.planId = required(input.planId, 100, 'Plan id');
+    const taskCompletion = this.kind === 'CALENDAR_TASK_COMPLETED';
+    this.planId = taskCompletion ? null : required(input.planId, 100, 'Plan id');
+    this.calendarEntryId = taskCompletion ? required(input.calendarEntryId ?? null, 100, 'Calendar entry id') : null;
     this.subject = required(input.subject, 240, 'Subject');
+    if (taskCompletion && input.amount !== null) throw new NotificationDomainError('Task notification cannot contain an amount');
+    if (!taskCompletion && input.amount === null) throw new NotificationDomainError('Expense notification requires an amount');
     this.amount = input.amount;
     this.occurrenceDate = validLocalDate(input.occurrenceDate);
-    if (!Number.isInteger(input.occurrenceNumber) || input.occurrenceNumber <= 0) {
+    if (!taskCompletion && (!Number.isInteger(input.occurrenceNumber) || input.occurrenceNumber === null || input.occurrenceNumber <= 0)) {
       throw new NotificationDomainError('Occurrence number must be positive');
     }
     if (input.totalOccurrences !== null && (!Number.isInteger(input.totalOccurrences)
-      || input.totalOccurrences < input.occurrenceNumber)) {
+      || input.occurrenceNumber === null || input.totalOccurrences < input.occurrenceNumber)) {
       throw new NotificationDomainError('Invalid total occurrences');
+    }
+    if (taskCompletion && (input.occurrenceNumber !== null || input.totalOccurrences !== null)) {
+      throw new NotificationDomainError('Task notification cannot contain installment data');
     }
     this.occurrenceNumber = input.occurrenceNumber;
     this.totalOccurrences = input.totalOccurrences;
@@ -88,6 +100,8 @@ export class InboxNotification {
       }
       this.attentionReason = null;
     }
+    this.completedByMemberId = taskCompletion
+      ? required(input.completedByMemberId ?? null, 100, 'Completing member id') : null;
     this.occurredAt = validInstant(input.occurredAt, 'Occurred at');
     this.createdAt = validInstant(input.createdAt, 'Created at');
     if (Date.parse(this.occurredAt) > Date.parse(this.createdAt)) {

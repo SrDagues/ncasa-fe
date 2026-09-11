@@ -8,7 +8,8 @@ import { HttpNotificationInboxGateway } from './http-notification-inbox.gateway'
 const notificationResponse = {
   id: 'n1', kind: 'EXPENSE_PLAN_OCCURRENCE_APPROACHING', householdId: 'h1', planId: 'p1', subject: 'Rent',
   amount: '900.00', currency: 'EUR', occurrenceDate: '2026-09-10', occurrenceNumber: 2, totalOccurrences: 12,
-  attentionReason: null, occurredAt: '2026-09-04T08:00:00Z', createdAt: '2026-09-04T08:00:01Z', readAt: null,
+  calendarEntryId: null, completedByMemberId: null, attentionReason: null,
+  occurredAt: '2026-09-04T08:00:00Z', createdAt: '2026-09-04T08:00:01Z', readAt: null,
 };
 
 describe('HttpNotificationInboxGateway', () => {

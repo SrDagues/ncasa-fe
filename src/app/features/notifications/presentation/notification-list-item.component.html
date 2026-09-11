@@ -13,8 +13,12 @@
       {{ notification().subject }}
     </a>
     <p class="mt-1 text-sm text-ncasa-muted">
-      {{ notification().amount | localizedCurrency }} · {{ notification().occurrenceDate | localizedDate }}
-      · {{ 'persistentNotifications.occurrence' | translate:{ number: notification().occurrenceNumber, total: notification().totalOccurrences || '—' } }}
+      @if (notification().kind === 'CALENDAR_TASK_COMPLETED') {
+        {{ 'persistentNotifications.taskCompletedOn' | translate:{ date: (notification().occurrenceDate | localizedDate) } }}
+      } @else {
+        {{ notification().amount! | localizedCurrency }} · {{ notification().occurrenceDate | localizedDate }}
+        · {{ 'persistentNotifications.occurrence' | translate:{ number: notification().occurrenceNumber, total: notification().totalOccurrences || '—' } }}
+      }
     </p>
     @if (notification().attentionReason) {
       <p class="mt-2 text-sm text-ncasa-coral-dark">{{ notification().attentionReason }}</p>

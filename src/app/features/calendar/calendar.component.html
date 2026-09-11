@@ -1,84 +1,44 @@
-<section class="flex flex-col gap-6">
-  <header class="flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'calendar.title' | translate }}</h1>
-      <p class="mt-1 text-sm text-ncasa-muted">{{ 'calendar.subtitle' | translate }}</p>
+<section class="flex flex-col gap-5">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div><p class="text-sm font-medium text-ncasa-coral">{{ 'calendarView.sharedCalendar' | translate }}</p><h1 class="mt-1 text-2xl font-semibold text-ncasa-forest sm:text-3xl">{{ 'calendar.title' | translate }}</h1><p class="mt-1 text-sm text-ncasa-muted">{{ 'calendar.subtitle' | translate }}</p></div>
+    <div class="flex flex-wrap gap-2">
+      <a routerLink="trash" class="inline-flex h-11 items-center gap-2 rounded-xl border border-ncasa-forest/30 bg-ncasa-surface px-4 text-sm font-medium text-ncasa-forest hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest"><lucide-icon name="trash-2" [size]="18" />{{ 'calendar.trash' | translate }}</a>
+      <a routerLink="new" [queryParams]="{ date: selectedDate() }" class="inline-flex h-11 items-center gap-2 rounded-xl bg-ncasa-coral px-4 text-sm font-medium text-white hover:bg-ncasa-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-coral"><lucide-icon name="calendar-plus" [size]="18" />{{ 'calendar.newItem' | translate }}</a>
     </div>
-    <app-button variant="primary" icon="calendar-plus">{{ 'calendar.newEvent' | translate }}</app-button>
   </header>
 
-  <!-- Legend -->
-  <div class="flex flex-wrap gap-x-5 gap-y-2">
-    <span *ngFor="let c of categories" class="inline-flex items-center gap-2 text-sm text-ncasa-charcoal">
-      <span class="h-2.5 w-2.5 rounded-full" [ngClass]="c.dot"></span>
-      {{ c.labelKey | translate }}
-    </span>
+  <div class="flex flex-wrap gap-2" [attr.aria-label]="'calendarView.monthSummary' | translate">
+    <span class="inline-flex items-center gap-2 rounded-full bg-ncasa-sage-soft px-3 py-1.5 text-xs font-medium text-ncasa-forest"><lucide-icon name="check-square" [size]="14" />{{ 'calendar.kinds.task' | translate }} · {{ counts().TASK }}</span>
+    <span class="inline-flex items-center gap-2 rounded-full bg-ncasa-coral/10 px-3 py-1.5 text-xs font-medium text-ncasa-charcoal"><lucide-icon name="calendar" [size]="14" />{{ 'calendar.kinds.event' | translate }} · {{ counts().EVENT }}</span>
+    <span class="inline-flex items-center gap-2 rounded-full bg-ncasa-cream px-3 py-1.5 text-xs font-medium text-ncasa-charcoal"><lucide-icon name="heart" [size]="14" />{{ 'calendar.kinds.special_date' | translate }} · {{ counts().SPECIAL_DATE }}</span>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-5">
-    <!-- Month grid -->
-    <app-card padding="none" class="lg:col-span-3">
-      <div class="flex items-center justify-between border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'calendar.month' | translate }}</h2>
-        <div class="flex items-center gap-2">
-          <app-icon-button icon="chevron-left" [label]="'common.previousMonth' | translate" variant="secondary" size="sm"></app-icon-button>
-          <app-icon-button icon="chevron-right" [label]="'common.nextMonth' | translate" variant="secondary" size="sm"></app-icon-button>
-        </div>
+  <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <app-card padding="none" class="min-w-0 overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ncasa-border px-4 py-4 sm:px-5">
+        <div class="flex items-center gap-2"><button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-ncasa-border bg-white text-ncasa-forest hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="move(-1)" [attr.aria-label]="'common.previousMonth' | translate"><lucide-icon name="chevron-left" [size]="18" /></button><button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-ncasa-border bg-white text-ncasa-forest hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="move(1)" [attr.aria-label]="'common.nextMonth' | translate"><lucide-icon name="chevron-right" [size]="18" /></button></div>
+        <h2 class="text-lg font-semibold capitalize text-ncasa-forest">{{ monthDate() | localizedDate: monthFormat }}</h2>
+        <button type="button" class="h-10 rounded-xl border border-ncasa-border bg-white px-4 text-sm font-medium text-ncasa-forest hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="goToday()">{{ 'calendarView.today' | translate }}</button>
       </div>
-
-      <div class="p-4">
-        <div class="grid grid-cols-7 gap-1">
-          <span
-            *ngFor="let w of weekdays"
-            class="pb-2 text-center text-xs font-semibold uppercase tracking-wide text-ncasa-muted"
-          >
-            {{ w }}
-          </span>
-
-          <div
-            *ngFor="let cell of grid"
-            class="flex min-h-[64px] flex-col rounded-xl p-1.5"
-            [ngClass]="cell.day === null
-              ? ''
-              : (cell.isToday ? 'bg-ncasa-forest text-ncasa-cream' : 'hover:bg-ncasa-sage-soft')"
-          >
-            <ng-container *ngIf="cell.day !== null">
-              <span
-                class="text-xs font-medium"
-                [ngClass]="cell.isToday ? 'text-ncasa-cream' : 'text-ncasa-charcoal'"
-              >
-                {{ cell.day }}
-              </span>
-              <span class="mt-auto flex flex-wrap gap-1 pt-1">
-                <span
-                  *ngFor="let ev of cell.events"
-                  class="h-1.5 w-1.5 rounded-full"
-                  [ngClass]="cell.isToday ? 'bg-ncasa-cream' : dot(ev)"
-                ></span>
-              </span>
-            </ng-container>
+      @if (store.state() === 'error') { <div class="p-6 text-center"><p class="text-sm text-ncasa-error" role="alert">{{ 'calendar.loadError' | translate }}</p><button type="button" class="mt-3 text-sm font-medium text-ncasa-forest underline" (click)="retry()">{{ 'common.retry' | translate }}</button></div> }
+      @else {
+        <div class="w-full min-w-0">
+          <div class="grid grid-cols-7 border-l border-ncasa-border" role="row">@for (weekday of weekdays; track weekday; let index = $index) { <div class="min-w-0 border-b border-r border-ncasa-border px-0.5 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wide sm:px-2 sm:text-xs" [class.bg-ncasa-sage-soft]="index > 4" [class.text-ncasa-forest]="index > 4" [class.text-ncasa-muted]="index <= 4" role="columnheader">{{ weekday }}</div> }</div>
+          <div class="grid grid-cols-7 border-l border-ncasa-border" role="grid" [attr.aria-label]="monthDate() | localizedDate: monthFormat">
+            @for (cell of grid(); track cell.date) { <div class="min-h-20 min-w-0 cursor-pointer border-b border-r border-ncasa-border p-1 transition-colors hover:bg-ncasa-sage-soft/70 sm:min-h-32 sm:p-2" [class.bg-ncasa-sage-soft]="cell.weekend && cell.inMonth" [class.bg-ncasa-cream]="!cell.inMonth" [class.ring-2]="cell.date === selectedDate()" [class.ring-inset]="cell.date === selectedDate()" [class.ring-ncasa-coral]="cell.date === selectedDate()" role="gridcell" (click)="selectDay(cell.date)">
+              <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest sm:h-8 sm:w-8 sm:text-sm" [class.bg-ncasa-forest]="cell.date === today" [class.text-white]="cell.date === today" [class.text-ncasa-muted]="!cell.inMonth && cell.date !== today" [attr.aria-label]="formatDate(cell.date)" [attr.aria-pressed]="cell.date === selectedDate()">{{ cell.day }}</button>
+              @if (cell.occurrences.length) { <div class="mt-1 flex flex-wrap gap-1 sm:hidden" aria-hidden="true">@for (item of cell.occurrences.slice(0, 3); track item.itemId + item.occurrenceKey) { <span class="h-1.5 w-1.5 rounded-full" [style.background-color]="item.color"></span> }</div> }
+              <div class="mt-1.5 hidden min-w-0 space-y-1 sm:block">@for (item of cell.occurrences.slice(0, 3); track item.itemId + item.occurrenceKey) { <a [routerLink]="[item.itemId]" [queryParams]="{ occurrenceKey: item.occurrenceKey }" class="flex min-w-0 items-center gap-1.5 truncate rounded-lg border-l-4 bg-white/90 px-1.5 py-1 text-xs font-medium text-ncasa-charcoal shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" [style.border-left-color]="item.color" [class.line-through]="item.status === 'COMPLETED'"><lucide-icon class="shrink-0" [name]="typeIcon(item.kind)" [size]="12" />@if (!item.timing.allDay) { <span>{{ displayTime(item.timing.startTime) }}</span> }<span class="truncate">{{ item.title }}</span></a> } @if (cell.occurrences.length > 3) { <button type="button" class="text-xs font-medium text-ncasa-forest hover:underline">{{ 'calendarView.more' | translate: { count: cell.occurrences.length - 3 } }}</button> }</div>
+            </div> }
           </div>
         </div>
-      </div>
+      }
     </app-card>
 
-    <!-- Agenda -->
-    <app-card padding="none" class="lg:col-span-2">
-      <div class="border-b border-ncasa-border px-5 py-4">
-        <h2 class="text-base font-semibold text-ncasa-forest">{{ 'calendar.upcoming' | translate }}</h2>
-      </div>
-      <ul class="divide-y divide-ncasa-border">
-        <li *ngFor="let e of events; trackBy: trackEvent" class="flex items-start gap-3 px-5 py-4">
-          <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" [ngClass]="dot(e.category)"></span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-ncasa-charcoal">{{ e.titleKey | translate }}</p>
-            <p class="mt-0.5 text-xs text-ncasa-muted">{{ e.date | localizedDate }}<span *ngIf="e.time"> · {{ e.time }}</span></p>
-          </div>
-          <span class="rounded-full px-2.5 py-1 text-xs font-medium" [ngClass]="chip(e.category)">
-            {{ categoryLabel(e.category) | translate }}
-          </span>
-        </li>
-      </ul>
-    </app-card>
+    <aside><app-card padding="none"><div class="border-b border-ncasa-border px-5 py-4"><p class="text-xs font-semibold uppercase tracking-wide text-ncasa-muted">{{ 'calendarView.selectedDay' | translate }}</p><h2 class="mt-1 text-lg font-semibold text-ncasa-forest">{{ selectedDateLabel() }}</h2></div>
+      @if (store.state() === 'loading' || store.state() === 'initial') { <p class="p-5 text-sm text-ncasa-muted" role="status">{{ 'calendar.loading' | translate }}</p> }
+      @else if (!selectedOccurrences().length) { <div class="p-5"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-ncasa-sage-soft text-ncasa-forest"><lucide-icon name="calendar-plus" [size]="20" /></div><p class="mt-3 text-sm font-medium text-ncasa-charcoal">{{ 'calendarView.dayEmpty' | translate }}</p><a routerLink="new" [queryParams]="{ date: selectedDate() }" class="mt-3 inline-flex text-sm font-semibold text-ncasa-forest underline">{{ 'calendarView.addOnSelectedDay' | translate }}</a></div> }
+      @else { <ul class="divide-y divide-ncasa-border">@for (item of selectedOccurrences(); track item.itemId + item.occurrenceKey) { <li><a [routerLink]="[item.itemId]" [queryParams]="{ occurrenceKey: item.occurrenceKey }" class="flex gap-3 px-5 py-4 hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ncasa-forest"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white" [style.background-color]="item.color"><lucide-icon [name]="typeIcon(item.kind)" [size]="17" /></span><span class="min-w-0"><strong class="block truncate text-sm" [class.line-through]="item.status === 'COMPLETED'">{{ item.title }}</strong><small class="mt-0.5 block text-ncasa-muted">{{ typeKey(item.kind) | translate }} @if (item.timing.allDay) { · {{ 'calendarView.allDay' | translate }} } @else { · {{ displayTime(item.timing.startTime) }} }</small></span></a></li> }</ul> }
+    </app-card></aside>
   </div>
 </section>

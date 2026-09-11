@@ -22,7 +22,9 @@ export class NotificationTargetCoordinator {
       void readPromise.then(ok => { if (!ok) this.notify('persistentNotifications.errors.read'); });
       return false;
     }
-    const navigated = await this.router.navigate(['/app/expenses/plans', notification.planId]);
+    const navigated = notification.kind === 'CALENDAR_TASK_COMPLETED'
+      ? await this.router.navigate(['/app/calendar', notification.calendarEntryId], { queryParams: { occurrenceKey: notification.occurrenceDate } })
+      : await this.router.navigate(['/app/expenses/plans', notification.planId]);
     void readPromise.then(ok => { if (!ok) this.notify('persistentNotifications.errors.read'); });
     return navigated;
   }

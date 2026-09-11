@@ -43,6 +43,21 @@ describe('NotificationTargetCoordinator', () => {
     await vi.waitFor(() => expect(show).toHaveBeenCalled()); expect(navigate).toHaveBeenCalled();
   });
 
+  it('opens a completed task in the calendar', async () => {
+    const navigate = vi.fn(async () => true);
+    TestBed.configureTestingModule({ providers: [NotificationTargetCoordinator,
+      { provide: NotificationInboxStore, useValue: { markRead: vi.fn(async () => true) } },
+      { provide: HouseholdStore, useValue: { active: signal({ id: 'h1' }), select: vi.fn() } },
+      { provide: Router, useValue: { navigate } }, { provide: NotificationService, useValue: { show: vi.fn() } },
+      { provide: TranslateService, useValue: { instant: (key: string) => key } },
+    ] });
+    const task = new InboxNotification({ ...unreadNotification, kind: 'CALENDAR_TASK_COMPLETED', planId: null,
+      calendarEntryId: 'task-1', amount: null, occurrenceNumber: null, totalOccurrences: null,
+      attentionReason: null, completedByMemberId: 'member-1' });
+    expect(await TestBed.inject(NotificationTargetCoordinator).open(task)).toBe(true);
+    expect(navigate).toHaveBeenCalledWith(['/app/calendar', 'task-1'], { queryParams: { occurrenceKey: '2026-09-10' } });
+  });
+
   it('does not navigate when the household cannot be activated', async () => {
     const navigate = vi.fn(); const show = vi.fn();
     TestBed.configureTestingModule({ providers: [NotificationTargetCoordinator,

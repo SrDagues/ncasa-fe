@@ -1,1 +1,3 @@
-export { EVENT_CATEGORIES, EVENTS } from './infrastructure/demo/calendar-demo.data';
+export { provideCalendar } from './infrastructure/calendar.providers';
+export { ListCalendarOccurrencesUseCase } from './application/use-cases/calendar.use-cases';
+export type { CalendarOccurrence } from './domain/calendar.models';

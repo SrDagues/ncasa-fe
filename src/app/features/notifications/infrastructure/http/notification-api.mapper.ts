@@ -17,10 +17,13 @@ export function mapInboxNotification(value: unknown): InboxNotification {
     if (!NOTIFICATION_KINDS.includes(rawKind as NotificationKind)) return invalid();
     return new InboxNotification({
       id: string(dto['id']), kind: rawKind as NotificationKind,
-      householdId: string(dto['householdId']), planId: string(dto['planId']), subject: string(dto['subject']),
-      amount: NotificationAmount.fromDecimal(string(dto['amount']), string(dto['currency'])),
-      occurrenceDate: string(dto['occurrenceDate']), occurrenceNumber: integer(dto['occurrenceNumber']),
+      householdId: string(dto['householdId']), planId: nullableString(dto['planId']),
+      calendarEntryId: nullableString(dto['calendarEntryId']), subject: string(dto['subject']),
+      amount: dto['amount'] === null && dto['currency'] === null ? null
+        : NotificationAmount.fromDecimal(string(dto['amount']), string(dto['currency'])),
+      occurrenceDate: string(dto['occurrenceDate']), occurrenceNumber: nullableInteger(dto['occurrenceNumber']),
       totalOccurrences: nullableInteger(dto['totalOccurrences']), attentionReason: nullableString(dto['attentionReason']),
+      completedByMemberId: nullableString(dto['completedByMemberId']),
       occurredAt: string(dto['occurredAt']), createdAt: string(dto['createdAt']), readAt: nullableString(dto['readAt']),
     });
   } catch (error) {

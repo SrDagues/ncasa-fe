@@ -12,8 +12,8 @@ describe('InboxNotification', () => {
   it('creates a valid unread reminder and normalizes text and currency', () => {
     const value = notification({ subject: ' Rent ' });
     expect(value.subject).toBe('Rent');
-    expect(value.amount.currency).toBe('EUR');
-    expect(value.amount.minorUnits).toBe(90000n);
+    expect(value.amount!.currency).toBe('EUR');
+    expect(value.amount!.minorUnits).toBe(90000n);
     expect(value.isUnread).toBe(true);
   });
 
@@ -29,6 +29,13 @@ describe('InboxNotification', () => {
     expect(() => notification({ kind: 'EXPENSE_PLAN_ATTENTION_REQUIRED', attentionReason: null })).toThrow('Attention');
     expect(() => notification({ attentionReason: 'unexpected' })).toThrow('Reminder');
     expect(notification({ kind: 'EXPENSE_PLAN_ATTENTION_REQUIRED', attentionReason: ' Fix plan ' }).attentionReason).toBe('Fix plan');
+  });
+
+  it('models a completed task without expense installment data', () => {
+    const value = notification({ kind: 'CALENDAR_TASK_COMPLETED', planId: null, calendarEntryId: 'task-1',
+      amount: null, occurrenceNumber: null, totalOccurrences: null, completedByMemberId: 'member-1' });
+    expect(value.calendarEntryId).toBe('task-1');
+    expect(value.amount).toBeNull();
   });
 
   it('marks an unread notification immutably and only once', () => {
