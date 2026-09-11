@@ -41,6 +41,7 @@ export class AppLayoutComponent {
     { labelKey: 'navigation.dashboard', icon: 'home', path: '/app/dashboard' },
     { labelKey: 'navigation.expenses', icon: 'wallet', path: '/app/expenses' },
     { labelKey: 'navigation.calendar', icon: 'calendar', path: '/app/calendar' },
+    { labelKey: 'navigation.shoppingLists', icon: 'shopping-cart', path: '/app/shopping-lists' },
     { labelKey: 'navigation.household', icon: 'users', path: '/app/household' },
   ];
 

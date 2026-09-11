@@ -5,13 +5,14 @@ import { authGuard, guestGuard } from './features/auth/presentation/auth.guards'
 import { provideExpenses } from './features/expenses';
 import { provideNotifications } from './features/notifications';
 import { provideCalendar } from './features/calendar';
+import { provideShoppingLists } from './features/shopping-lists';
 
 export const routes: Routes = [
   {
     path: 'app',
     component: AppLayoutComponent,
     canActivate: [authGuard],
-    providers: [provideExpenses(), provideNotifications(), provideCalendar()],
+    providers: [provideExpenses(), provideNotifications(), provideCalendar(), provideShoppingLists()],
     children: [
       {
         path: 'dashboard',
@@ -31,6 +32,11 @@ export const routes: Routes = [
         path: 'calendar',
         loadChildren: () => import('./features/calendar/calendar.routes').then(module => module.CALENDAR_ROUTES),
         data: { titleKey: 'metadata.calendar' },
+      },
+      {
+        path: 'shopping-lists',
+        loadChildren: () => import('./features/shopping-lists/shopping-lists.routes').then(module => module.SHOPPING_LIST_ROUTES),
+        data: { titleKey: 'metadata.shoppingLists' },
       },
       {
         path: 'notifications',

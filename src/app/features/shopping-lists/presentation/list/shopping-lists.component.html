@@ -1,0 +1,102 @@
+<section class="space-y-5">
+  @if (store.error(); as error) {
+    <div class="flex items-start justify-between gap-3 rounded-xl border border-ncasa-coral/30 bg-red-50 p-4 text-sm text-ncasa-error" role="alert">
+      <span>{{ ('shoppingLists.errors.' + error.kind) | translate }}</span>
+      <button type="button" class="font-semibold underline" (click)="store.clearError()">{{ 'common.cancel' | translate }}</button>
+    </div>
+  }
+
+  @if (store.state() === 'loading') {
+    <div class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-8 text-center text-ncasa-muted">{{ 'shoppingLists.loading' | translate }}</div>
+  } @else if (!household.active()) {
+    <div class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-8 text-center text-ncasa-muted">{{ 'shoppingLists.noHousehold' | translate }}</div>
+  } @else {
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-ncasa-coral">{{ 'shoppingLists.eyebrow' | translate }}</p>
+        @if (store.current()) {
+          <label class="sr-only" for="shopping-list-selector">{{ 'shoppingLists.selectList' | translate }}</label>
+          <select id="shopping-list-selector" class="mt-1 max-w-full rounded-xl border-0 bg-transparent pr-9 text-3xl font-bold text-ncasa-forest outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" [value]="store.current()?.id" (change)="selectList($event)">
+            @for (list of store.lists(); track list.id) { <option [value]="list.id">{{ list.name }}</option> }
+          </select>
+          <p class="mt-1 flex items-center gap-2 text-sm text-ncasa-muted">
+            <span>{{ 'shoppingLists.automaticRefresh' | translate }}</span>
+            <span class="h-2 w-2 rounded-full bg-ncasa-sage" aria-hidden="true"></span>
+            @if (store.refreshing()) { <span aria-live="polite">{{ 'shoppingLists.refreshing' | translate }}</span> }
+          </p>
+        } @else {
+          <h1 class="mt-1 text-3xl font-bold text-ncasa-forest">{{ 'shoppingLists.title' | translate }}</h1>
+        }
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a routerLink="trash" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ncasa-border bg-ncasa-surface px-4 py-2 font-semibold text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest">
+          <lucide-icon name="trash-2" [size]="18" aria-hidden="true" /> {{ 'shoppingLists.trash' | translate }}
+        </a>
+        @if (store.current()) {
+          <button type="button" class="min-h-11 rounded-xl border border-ncasa-border bg-ncasa-surface px-4 py-2 font-semibold text-ncasa-forest focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="openSettings()">{{ 'shoppingLists.settings' | translate }}</button>
+        }
+        <button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-ncasa-coral px-4 py-2 font-semibold text-white hover:bg-ncasa-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="openCreate()">
+          <lucide-icon name="plus" [size]="18" aria-hidden="true" /> {{ 'shoppingLists.newList' | translate }}
+        </button>
+      </div>
+    </header>
+
+    @if (store.current()) {
+      <form class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-5 shadow-soft" (submit)="$event.preventDefault(); add()" novalidate>
+        <div class="grid gap-4 md:grid-cols-[2fr_1fr_2fr_auto] md:items-end">
+          <div><label for="quick-product" class="mb-1 block text-sm font-semibold text-ncasa-charcoal">{{ 'shoppingLists.product' | translate }}</label><input #productInput id="quick-product" [formField]="itemForm.name" autocomplete="off" class="field" [attr.aria-invalid]="invalidFields().includes('name')" /></div>
+          <div><label for="quick-quantity" class="mb-1 block text-sm font-semibold text-ncasa-charcoal">{{ 'shoppingLists.quantity' | translate }}</label><input id="quick-quantity" type="number" inputmode="decimal" step="0.001" [formField]="itemForm.quantity" class="field" [attr.aria-invalid]="invalidFields().includes('quantity')" /></div>
+          <div><label for="quick-note" class="mb-1 block text-sm font-semibold text-ncasa-charcoal">{{ 'shoppingLists.note' | translate }}</label><input id="quick-note" [formField]="itemForm.note" class="field" /></div>
+          <button type="submit" [disabled]="store.busy() === 'add'" class="min-h-12 rounded-xl bg-ncasa-coral px-7 font-bold text-white hover:bg-ncasa-coral-dark disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ncasa-forest">{{ 'shoppingLists.add' | translate }}</button>
+        </div>
+        <button type="button" class="mt-4 flex min-h-10 items-center gap-2 rounded-lg font-semibold text-ncasa-forest focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="advanced.set(!advanced())" [attr.aria-expanded]="advanced()">
+          <lucide-icon name="chevron-down" [size]="18" aria-hidden="true" /> {{ 'shoppingLists.moreOptions' | translate }}
+        </button>
+        @if (advanced()) {
+          <div class="mt-3 grid gap-4 border-t border-ncasa-border pt-4 sm:grid-cols-3">
+            <div><label for="quick-unit" class="mb-1 block text-sm font-semibold">{{ 'shoppingLists.unit' | translate }}</label><select id="quick-unit" [formField]="itemForm.unit" class="field"><option value="">{{ 'shoppingLists.noUnit' | translate }}</option>@for (unit of ['UNIT','KILOGRAM','GRAM','LITER','MILLILITER','PACKAGE','OTHER']; track unit) { <option [value]="unit">{{ ('shoppingLists.units.' + unit) | translate }}</option> }</select></div>
+            @if (itemModel().unit === 'OTHER') { <div><label for="quick-custom-unit" class="mb-1 block text-sm font-semibold">{{ 'shoppingLists.customUnit' | translate }}</label><input id="quick-custom-unit" [formField]="itemForm.customUnit" class="field" [attr.aria-invalid]="invalidFields().includes('customUnit')" /></div> }
+            <div><label for="quick-responsible" class="mb-1 block text-sm font-semibold">{{ 'shoppingLists.responsible' | translate }}</label><select id="quick-responsible" [formField]="itemForm.responsibleMemberId" class="field"><option value="">{{ 'shoppingLists.unassigned' | translate }}</option>@for (member of household.members(); track member.id) { <option [value]="member.id">{{ member.email || ('household.unknownAccount' | translate) }}</option> }</select></div>
+          </div>
+        }
+      </form>
+
+      <section class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-3 shadow-soft sm:p-5" aria-labelledby="pending-title">
+        <h2 id="pending-title" class="border-b border-ncasa-border pb-4 text-xl font-bold text-ncasa-forest">{{ 'shoppingLists.pending' | translate }} · {{ store.pending().length }}</h2>
+        <div cdkDropList [cdkDropListData]="store.pending()" (cdkDropListDropped)="drop($event)">
+          @for (item of store.pending(); track item.id; let first = $first; let last = $last) {
+            <div cdkDrag class="grid min-h-16 grid-cols-[auto_auto_1fr_auto] items-center gap-2 border-b border-ncasa-border py-2 last:border-0 sm:grid-cols-[auto_auto_minmax(10rem,1fr)_minmax(7rem,auto)_auto_auto]">
+              <button cdkDragHandle type="button" class="drag-handle hidden h-10 w-8 cursor-grab items-center justify-center text-ncasa-muted sm:flex" [attr.aria-label]="'shoppingLists.drag' | translate">⠿</button>
+              <input type="checkbox" class="h-6 w-6 accent-ncasa-forest" [checked]="false" (change)="toggle(item, true)" [attr.aria-label]="('shoppingLists.markPurchased' | translate) + ': ' + item.name" />
+              <div class="min-w-0"><p class="truncate font-semibold text-ncasa-charcoal">{{ item.name }}</p>@if (item.note) { <p class="truncate text-sm text-ncasa-muted">{{ item.note }}</p> }</div>
+              <span class="hidden text-sm text-ncasa-muted sm:block">@if (item.quantity !== null) { {{ item.quantity }} } @if (item.unit) { {{ item.customUnit || (('shoppingLists.units.' + item.unit) | translate) }} }</span>
+              <div class="flex"><button type="button" class="icon-action" [disabled]="first" (click)="move(item, -1)" [attr.aria-label]="('shoppingLists.moveUp' | translate) + ': ' + item.name">↑</button><button type="button" class="icon-action" [disabled]="last" (click)="move(item, 1)" [attr.aria-label]="('shoppingLists.moveDown' | translate) + ': ' + item.name">↓</button></div>
+              <details class="relative"><summary class="icon-action list-none cursor-pointer" [attr.aria-label]="('shoppingLists.actions' | translate) + ': ' + item.name">⋮</summary><div class="absolute right-0 z-10 mt-1 w-36 rounded-xl border border-ncasa-border bg-white p-1 shadow-card"><button type="button" class="menu-action" (click)="openEdit(item)">{{ 'common.edit' | translate }}</button><button type="button" class="menu-action text-ncasa-error" (click)="deleteItem(item)">{{ 'shoppingLists.delete' | translate }}</button></div></details>
+            </div>
+          } @empty { <p class="py-8 text-center text-ncasa-muted">{{ 'shoppingLists.emptyPending' | translate }}</p> }
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-3 shadow-soft sm:p-5" aria-labelledby="purchased-title">
+        <div class="flex items-center justify-between gap-3 border-b border-ncasa-border pb-4"><h2 id="purchased-title" class="text-xl font-bold text-ncasa-forest">{{ 'shoppingLists.purchased' | translate }} · {{ store.purchased().length }}</h2>@if (store.purchased().length) { <button type="button" class="text-sm font-semibold text-ncasa-error underline" (click)="clearPurchased()">{{ 'shoppingLists.clearPurchased' | translate }}</button> }</div>
+        @for (item of store.purchased(); track item.id) {
+          <div class="grid min-h-16 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-ncasa-border py-2 last:border-0">
+            <input type="checkbox" class="h-6 w-6 accent-ncasa-forest" [checked]="true" (change)="toggle(item, false)" [attr.aria-label]="('shoppingLists.reopen' | translate) + ': ' + item.name" />
+            <div class="min-w-0 text-ncasa-muted line-through"><span class="font-medium">{{ item.name }}</span>@if (item.quantity !== null) { <span class="ml-5 text-sm">{{ item.quantity }} {{ item.customUnit || (item.unit ? (('shoppingLists.units.' + item.unit) | translate) : '') }}</span> }</div>
+            <button type="button" class="icon-action" (click)="deleteItem(item)" [attr.aria-label]="('shoppingLists.delete' | translate) + ': ' + item.name"><lucide-icon name="trash-2" [size]="17" aria-hidden="true" /></button>
+          </div>
+        } @empty { <p class="py-8 text-center text-ncasa-muted">{{ 'shoppingLists.emptyPurchased' | translate }}</p> }
+      </section>
+    } @else {
+      <div class="rounded-2xl border border-dashed border-ncasa-sage bg-ncasa-surface p-10 text-center"><h2 class="text-xl font-bold text-ncasa-forest">{{ 'shoppingLists.emptyLists' | translate }}</h2><p class="mt-2 text-ncasa-muted">{{ 'shoppingLists.emptyListsDescription' | translate }}</p><button type="button" class="mt-5 rounded-xl bg-ncasa-coral px-5 py-3 font-bold text-white" (click)="openCreate()">{{ 'shoppingLists.newList' | translate }}</button></div>
+    }
+  }
+</section>
+
+<dialog #listDialog class="w-[min(32rem,calc(100%-2rem))] rounded-2xl border border-ncasa-border bg-ncasa-surface p-0 text-ncasa-charcoal shadow-card backdrop:bg-ncasa-forest/40">
+  <form class="p-6" (submit)="$event.preventDefault(); saveList()"><h2 class="text-2xl font-bold text-ncasa-forest">{{ (dialogMode() === 'create' ? 'shoppingLists.createTitle' : 'shoppingLists.settingsTitle') | translate }}</h2><div class="mt-5"><label for="list-name" class="mb-1 block font-semibold">{{ 'shoppingLists.listName' | translate }}</label><input id="list-name" [formField]="listForm.name" class="field" autofocus /></div>@if (dialogMode() === 'settings') { <div class="mt-4"><label for="calendar-series" class="mb-1 block font-semibold">{{ 'shoppingLists.calendarLink' | translate }}</label><select id="calendar-series" [formField]="listForm.calendarSeriesId" class="field"><option value="">{{ 'shoppingLists.noCalendarLink' | translate }}</option>@for (option of store.calendarOptions(); track option.seriesId) { <option [value]="option.seriesId">{{ option.title }} · {{ option.startDate }}</option> }</select></div> }<div class="mt-6 flex flex-wrap justify-end gap-2">@if (dialogMode() === 'settings') { <button type="button" class="mr-auto rounded-xl px-3 py-2 font-semibold text-ncasa-error" (click)="closeListDialog(); trashList()">{{ 'shoppingLists.moveToTrash' | translate }}</button> }<button type="button" class="rounded-xl px-4 py-2 font-semibold" (click)="closeListDialog()">{{ 'common.cancel' | translate }}</button><button type="submit" class="rounded-xl bg-ncasa-coral px-5 py-2 font-bold text-white">{{ 'common.save' | translate }}</button></div></form>
+</dialog>
+
+<dialog #itemDialog class="w-[min(36rem,calc(100%-2rem))] rounded-2xl border border-ncasa-border bg-ncasa-surface p-0 text-ncasa-charcoal shadow-card backdrop:bg-ncasa-forest/40">
+  <form class="p-6" (submit)="$event.preventDefault(); saveItem()"><h2 class="text-2xl font-bold text-ncasa-forest">{{ 'shoppingLists.editItem' | translate }}</h2><div class="mt-5 grid gap-4 sm:grid-cols-2"><div class="sm:col-span-2"><label for="edit-name" class="label">{{ 'shoppingLists.product' | translate }}</label><input id="edit-name" [formField]="editForm.name" class="field" /></div><div><label for="edit-quantity" class="label">{{ 'shoppingLists.quantity' | translate }}</label><input id="edit-quantity" type="number" step="0.001" [formField]="editForm.quantity" class="field" /></div><div><label for="edit-unit" class="label">{{ 'shoppingLists.unit' | translate }}</label><select id="edit-unit" [formField]="editForm.unit" class="field"><option value="">{{ 'shoppingLists.noUnit' | translate }}</option>@for (unit of ['UNIT','KILOGRAM','GRAM','LITER','MILLILITER','PACKAGE','OTHER']; track unit) { <option [value]="unit">{{ ('shoppingLists.units.' + unit) | translate }}</option> }</select></div>@if (editModel().unit === 'OTHER') { <div><label for="edit-custom" class="label">{{ 'shoppingLists.customUnit' | translate }}</label><input id="edit-custom" [formField]="editForm.customUnit" class="field" /></div> }<div><label for="edit-responsible" class="label">{{ 'shoppingLists.responsible' | translate }}</label><select id="edit-responsible" [formField]="editForm.responsibleMemberId" class="field"><option value="">{{ 'shoppingLists.unassigned' | translate }}</option>@for (member of household.members(); track member.id) { <option [value]="member.id">{{ member.email || ('household.unknownAccount' | translate) }}</option> }</select></div><div class="sm:col-span-2"><label for="edit-note" class="label">{{ 'shoppingLists.note' | translate }}</label><textarea id="edit-note" [formField]="editForm.note" rows="3" class="field"></textarea></div></div><div class="mt-6 flex justify-end gap-2"><button type="button" class="rounded-xl px-4 py-2 font-semibold" (click)="closeItemDialog()">{{ 'common.cancel' | translate }}</button><button type="submit" class="rounded-xl bg-ncasa-coral px-5 py-2 font-bold text-white">{{ 'common.save' | translate }}</button></div></form>
+</dialog>
