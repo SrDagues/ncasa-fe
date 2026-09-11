@@ -4,13 +4,14 @@ import { AppLayoutComponent } from './shared/layouts/app-layout/app-layout.compo
 import { authGuard, guestGuard } from './features/auth/presentation/auth.guards';
 import { provideExpenses } from './features/expenses';
 import { provideNotifications } from './features/notifications';
+import { provideCalendar } from './features/calendar';
 
 export const routes: Routes = [
   {
     path: 'app',
     component: AppLayoutComponent,
     canActivate: [authGuard],
-    providers: [provideExpenses(), provideNotifications()],
+    providers: [provideExpenses(), provideNotifications(), provideCalendar()],
     children: [
       {
         path: 'dashboard',
@@ -28,10 +29,7 @@ export const routes: Routes = [
       { path: 'tickets', redirectTo: 'expenses', pathMatch: 'full' },
       {
         path: 'calendar',
-        loadComponent: () =>
-          import('./features/calendar/calendar.component').then(
-            (component) => component.CalendarComponent,
-          ),
+        loadChildren: () => import('./features/calendar/calendar.routes').then(module => module.CALENDAR_ROUTES),
         data: { titleKey: 'metadata.calendar' },
       },
       {

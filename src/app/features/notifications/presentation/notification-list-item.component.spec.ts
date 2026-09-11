@@ -34,4 +34,20 @@ describe('NotificationListItemComponent', () => {
     button.click(); expect(read).toHaveBeenCalledWith(unreadNotification); expect(open).not.toHaveBeenCalled();
     anchor.click(); expect(open).toHaveBeenCalledWith(unreadNotification);
   });
+
+  it('renders a completed task as a calendar notification', () => {
+    TestBed.configureTestingModule({ imports: [NotificationListItemComponent], providers: [
+      provideTranslateService({ fallbackLang: 'es', lang: 'es' }),
+      { provide: LanguageService, useValue: { currentLanguage: signal('es') } },
+    ] });
+    TestBed.inject(TranslateService).setTranslation('es', es);
+    const fixture = TestBed.createComponent(NotificationListItemComponent);
+    fixture.componentRef.setInput('notification', new InboxNotification({ ...unreadNotification,
+      kind: 'CALENDAR_TASK_COMPLETED', planId: null, calendarEntryId: 'task-1', amount: null,
+      occurrenceNumber: null, totalOccurrences: null, attentionReason: null, completedByMemberId: 'member-1' }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Tarea completada');
+    expect(fixture.nativeElement.textContent).not.toContain('Cuota');
+    expect((fixture.nativeElement.querySelector('a') as HTMLAnchorElement).getAttribute('href')).toContain('/app/calendar/task-1');
+  });
 });

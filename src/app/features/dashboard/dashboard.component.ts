@@ -9,7 +9,7 @@ import { CardComponent } from '../../shared/components/card/card.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { AuthStore } from '../auth';
-import { EVENT_CATEGORIES, EVENTS } from '../calendar';
+import { CalendarOccurrence, ListCalendarOccurrencesUseCase } from '../calendar';
 import { DashboardFinancialSnapshot, DashboardUpcomingExpense, GetDashboardFinancialSnapshotUseCase, GetDashboardUpcomingExpenseUseCase, ListRecentExpensesUseCase, RecentExpenseSummary } from '../expenses';
 import { HouseholdStore } from '../household';
 
@@ -22,6 +22,7 @@ export class DashboardComponent {
   private readonly listRecent = inject(ListRecentExpensesUseCase);
   private readonly getFinancialSnapshot = inject(GetDashboardFinancialSnapshotUseCase);
   private readonly getUpcomingExpense = inject(GetDashboardUpcomingExpenseUseCase);
+  private readonly listCalendar = inject(ListCalendarOccurrencesUseCase);
   readonly members = this.household.members;
   readonly householdName = computed(() => this.household.active()?.name ?? '—');
   readonly currentUserEmail = computed(() => this.auth.currentUser()?.email ?? '');
@@ -30,15 +31,16 @@ export class DashboardComponent {
   readonly financial = signal<DashboardFinancialSnapshot | null>(null);
   readonly financialState = signal<'initial' | 'loading' | 'ready' | 'empty' | 'error'>('initial');
   readonly upcomingExpense=signal<DashboardUpcomingExpense|null>(null);readonly upcomingExpenseState=signal<'initial'|'loading'|'ready'|'empty'|'error'>('initial');
-  readonly upcomingEvents = [...EVENTS].sort((a, b) => a.day - b.day).slice(0, 3);
+  readonly upcomingEvents = signal<readonly CalendarOccurrence[]>([]);
+  readonly calendarState = signal<'initial' | 'loading' | 'ready' | 'empty' | 'error'>('initial');
   private requestId = 0;
   private financialRequestId = 0;
   private upcomingRequestId=0;
+  private calendarRequestId=0;
 
-  constructor() { effect(() => { const active = this.household.active(); const summary = this.household.households().find(item => item.id === active?.id); if (active && summary) { void this.loadRecent(active.id); void this.loadFinancial(active.id, summary.currentMemberId);void this.loadUpcoming(active.id); } else { this.recentExpenses.set([]); this.recentState.set('initial'); this.financial.set(null); this.financialState.set('initial');this.upcomingExpense.set(null);this.upcomingExpenseState.set('initial'); } }); }
+  constructor() { effect(() => { const active = this.household.active(); const summary = this.household.households().find(item => item.id === active?.id); if (active && summary) { void this.loadRecent(active.id); void this.loadFinancial(active.id, summary.currentMemberId);void this.loadUpcoming(active.id); void this.loadCalendar(active.id); } else { this.recentExpenses.set([]); this.recentState.set('initial'); this.financial.set(null); this.financialState.set('initial');this.upcomingExpense.set(null);this.upcomingExpenseState.set('initial'); this.upcomingEvents.set([]); this.calendarState.set('initial'); } }); }
 
   memberName(id: string): string { return this.household.active()?.members.find(member => member.id === id)?.email ?? `${id.slice(0, 8)}…`; }
-  eventDot(key: string): string { return EVENT_CATEGORIES.find(category => category.key === key)?.dot ?? 'bg-ncasa-sage'; }
   private async loadRecent(householdId: string): Promise<void> {
     const requestId = ++this.requestId; this.recentState.set('loading');
     try { const expenses = await firstValueFrom(this.listRecent.execute(householdId)); if (requestId === this.requestId) { this.recentExpenses.set(expenses); this.recentState.set(expenses.length ? 'ready' : 'empty'); } }
@@ -50,6 +52,7 @@ export class DashboardComponent {
     catch { if (requestId === this.financialRequestId) this.financialState.set('error'); }
   }
   private async loadUpcoming(householdId:string){const request=++this.upcomingRequestId;this.upcomingExpenseState.set('loading');const from=localDate(0),to=localDate(90);try{const value=await firstValueFrom(this.getUpcomingExpense.execute(householdId,from,to,new Date().toISOString()));if(request===this.upcomingRequestId){this.upcomingExpense.set(value);this.upcomingExpenseState.set(value?'ready':'empty');}}catch{if(request===this.upcomingRequestId)this.upcomingExpenseState.set('error');}}
+  private async loadCalendar(householdId:string):Promise<void>{const request=++this.calendarRequestId;this.calendarState.set('loading');try{const values=await firstValueFrom(this.listCalendar.execute(householdId,localDate(0),localDate(30)));if(request===this.calendarRequestId){const items=[...values].sort((a,b)=>a.timing.startDate.localeCompare(b.timing.startDate)||(a.timing.startTime??'').localeCompare(b.timing.startTime??'')).slice(0,3);this.upcomingEvents.set(items);this.calendarState.set(items.length?'ready':'empty');}}catch{if(request===this.calendarRequestId)this.calendarState.set('error');}}
 }
 const localMonth = (): string => { const date = new Date(); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; };
-const localDate=(days:number)=>{const date=new Date();date.setDate(date.getDate()+days);return date.toISOString().slice(0,10);};
+const localDate=(days:number)=>{const date=new Date();date.setDate(date.getDate()+days);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;};

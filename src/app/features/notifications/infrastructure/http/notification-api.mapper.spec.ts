@@ -4,7 +4,8 @@ import { mapInboxNotification, mapNotificationPage, mapUnreadCount } from './not
 export const notificationResponse = {
   id: 'n1', kind: 'EXPENSE_PLAN_OCCURRENCE_APPROACHING', householdId: 'h1', planId: 'p1', subject: 'Rent',
   amount: '900.00', currency: 'EUR', occurrenceDate: '2026-09-10', occurrenceNumber: 2, totalOccurrences: 12,
-  attentionReason: null, occurredAt: '2026-09-04T08:00:00Z', createdAt: '2026-09-04T08:00:01Z', readAt: null,
+  calendarEntryId: null, completedByMemberId: null, attentionReason: null,
+  occurredAt: '2026-09-04T08:00:00Z', createdAt: '2026-09-04T08:00:01Z', readAt: null,
 };
 
 describe('notification API mapper', () => {
@@ -13,7 +14,16 @@ describe('notification API mapper', () => {
   ])('maps %s without leaking its DTO', kind => {
     const value = mapInboxNotification({ ...notificationResponse, kind,
       attentionReason: kind === 'EXPENSE_PLAN_ATTENTION_REQUIRED' ? 'Plan needs a payer' : null });
-    expect(value.kind).toBe(kind); expect(value.amount.minorUnits).toBe(90000n);
+    expect(value.kind).toBe(kind); expect(value.amount!.minorUnits).toBe(90000n);
+  });
+
+  it('maps a calendar task completion without expense data', () => {
+    const value = mapInboxNotification({ ...notificationResponse, kind: 'CALENDAR_TASK_COMPLETED', planId: null,
+      calendarEntryId: 'task-1', amount: null, currency: null, occurrenceNumber: null,
+      totalOccurrences: null, completedByMemberId: 'member-1' });
+    expect(value.kind).toBe('CALENDAR_TASK_COMPLETED');
+    expect(value.calendarEntryId).toBe('task-1');
+    expect(value.amount).toBeNull();
   });
 
   it.each([
