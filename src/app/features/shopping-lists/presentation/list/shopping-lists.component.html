@@ -28,16 +28,24 @@
           <h1 class="mt-1 text-3xl font-bold text-ncasa-forest">{{ 'shoppingLists.title' | translate }}</h1>
         }
       </div>
-      <div class="flex flex-wrap gap-2">
-        <a routerLink="trash" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ncasa-border bg-ncasa-surface px-4 py-2 font-semibold text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest">
-          <lucide-icon name="trash-2" [size]="18" aria-hidden="true" /> {{ 'shoppingLists.trash' | translate }}
-        </a>
+      <div class="flex w-full items-end gap-2 sm:w-auto">
+        <div class="min-w-0 flex-[2]">
+          <span class="mb-1 block truncate text-[0.625rem] font-bold uppercase tracking-wider text-ncasa-muted">{{ 'shoppingListsActionScopes.allLists' | translate }}</span>
+          <div class="flex gap-1.5">
+            <button type="button" class="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-xl bg-ncasa-coral px-1.5 py-2 text-[0.8rem] font-semibold text-white hover:bg-ncasa-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest sm:gap-2 sm:px-4 sm:text-base" (click)="openCreate()">
+              <lucide-icon name="plus" [size]="17" aria-hidden="true" /> <span>{{ 'shoppingLists.newList' | translate }}</span>
+            </button>
+            <a routerLink="trash" class="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-xl border border-ncasa-border bg-ncasa-surface px-1.5 py-2 text-[0.8rem] font-semibold text-ncasa-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest sm:gap-2 sm:px-4 sm:text-base">
+              <lucide-icon name="trash-2" [size]="17" aria-hidden="true" /> <span>{{ 'shoppingLists.trash' | translate }}</span>
+            </a>
+          </div>
+        </div>
         @if (store.current()) {
-          <button type="button" class="min-h-11 rounded-xl border border-ncasa-border bg-ncasa-surface px-4 py-2 font-semibold text-ncasa-forest focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="openSettings()">{{ 'shoppingLists.settings' | translate }}</button>
+          <div class="min-w-0 flex-1 border-l border-ncasa-border pl-2">
+            <span class="mb-1 block truncate text-[0.625rem] font-bold uppercase tracking-wider text-ncasa-muted">{{ 'shoppingListsActionScopes.currentList' | translate }}</span>
+            <button type="button" class="inline-flex min-h-11 w-full min-w-0 items-center justify-center whitespace-nowrap rounded-xl bg-ncasa-sage-soft px-1.5 py-2 text-[0.8rem] font-semibold text-ncasa-forest hover:bg-ncasa-sage/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest sm:px-4 sm:text-base" (click)="openSettings()">{{ 'shoppingLists.settings' | translate }}</button>
+          </div>
         }
-        <button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-ncasa-coral px-4 py-2 font-semibold text-white hover:bg-ncasa-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest" (click)="openCreate()">
-          <lucide-icon name="plus" [size]="18" aria-hidden="true" /> {{ 'shoppingLists.newList' | translate }}
-        </button>
       </div>
     </header>
 
