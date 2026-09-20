@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { ShoppingListApplicationError, ShoppingListErrorKind } from '../../application/shopping-list.errors';
-import { AddedShoppingItem, ShoppingListCollectionResult, ShoppingListDetailResult, ShoppingListGateway } from '../../application/ports/shopping-list.gateway';
+import { AddedShoppingItem, ShoppingListCollectionResult, ShoppingListDetailResult, ShoppingListDetailSnapshot, ShoppingListGateway } from '../../application/ports/shopping-list.gateway';
 import { CalendarSeriesOption, ShoppingItem, ShoppingItemDraft, ShoppingListSummary } from '../../domain/shopping-list.models';
 import { mapCalendarOptions, mapShoppingItem, mapShoppingList, mapShoppingListDetail, mapShoppingLists } from './shopping-list-api.mapper';
 
@@ -40,6 +40,7 @@ export class HttpShoppingListGateway implements ShoppingListGateway {
   setPurchased(householdId: string, listId: string, item: ShoppingItem, purchased: boolean): Observable<ShoppingItem> { const action = purchased ? 'purchase' : 'reopen'; return this.http.post<unknown>(`${this.collection(householdId)}/${listId}/items/${item.id}/${action}`, { version: item.version }).pipe(map(mapShoppingItem), this.errors()); }
   reorder(householdId: string, list: ShoppingListSummary, itemIds: readonly string[]): Observable<ShoppingListSummary> { return this.http.put<unknown>(`${this.collection(householdId)}/${list.id}/items/order`, { contentRevision: list.contentRevision, itemIds }).pipe(map(mapShoppingList), this.errors()); }
   clearPurchased(householdId: string, list: ShoppingListSummary): Observable<number> { return this.http.delete<unknown>(`${this.collection(householdId)}/${list.id}/items/purchased`, { params: new HttpParams().set('contentRevision', list.contentRevision) }).pipe(map(value => { const body = typeof value === 'object' && value !== null ? value as Readonly<Record<string, unknown>> : {}; return typeof body['deleted'] === 'number' ? body['deleted'] : 0; }), this.errors()); }
+  reusePurchased(householdId: string, list: ShoppingListSummary): Observable<ShoppingListDetailSnapshot> { return this.http.post<unknown>(`${this.collection(householdId)}/${list.id}/items/reuse-purchased`, { contentRevision: list.contentRevision }, { observe: 'response' }).pipe(map(response => ({ detail: mapShoppingListDetail(response.body), etag: response.headers.get('ETag') })), this.errors()); }
   calendarOptions(householdId: string): Observable<readonly CalendarSeriesOption[]> { return this.http.get<unknown>(`${this.apiUrl}/households/${householdId}/calendar-items/link-options`).pipe(map(mapCalendarOptions), this.errors()); }
 
   private itemBody(draft: ShoppingItemDraft): object { return { ...draft, name: draft.name.trim(), customUnit: draft.unit === 'OTHER' ? draft.customUnit.trim() : null, note: draft.note.trim() || null }; }

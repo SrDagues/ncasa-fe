@@ -13,6 +13,10 @@ actions expose the same operation to keyboard and assistive-technology users. Qu
 visible on narrow screens. Purchased products move immediately to the lower section, use both a checked control and
 struck-through text, and retain the same edit and delete actions as pending products.
 
+“Reuse purchased” prepares a new manual shopping cycle on the same list. After an accessible confirmation, every
+purchased product is appended to pending in purchase order. Quantity, unit, note and assignee remain; purchase audit
+is cleared and no historical cycle or copied list is created. The backend response replaces both sections and ETag.
+
 The feature stores the last selected list per household through a browser-storage port. If it disappears, the most
 recently updated active list is selected. Detail polling runs every 15 seconds and active-list discovery every 60
 seconds only on the visible route. Both refresh immediately after browser visibility returns, use ETag/If-None-Match,

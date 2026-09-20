@@ -14,6 +14,11 @@ export interface AddedShoppingItem {
   readonly list: ShoppingListSummary;
 }
 
+export interface ShoppingListDetailSnapshot {
+  readonly detail: ShoppingListDetail;
+  readonly etag: string | null;
+}
+
 export interface ShoppingListGateway {
   list(householdId: string, trashed?: boolean, etag?: string): Observable<ShoppingListCollectionResult>;
   get(householdId: string, listId: string, etag?: string): Observable<ShoppingListDetailResult>;
@@ -28,6 +33,7 @@ export interface ShoppingListGateway {
   setPurchased(householdId: string, listId: string, item: ShoppingItem, purchased: boolean): Observable<ShoppingItem>;
   reorder(householdId: string, list: ShoppingListSummary, itemIds: readonly string[]): Observable<ShoppingListSummary>;
   clearPurchased(householdId: string, list: ShoppingListSummary): Observable<number>;
+  reusePurchased(householdId: string, list: ShoppingListSummary): Observable<ShoppingListDetailSnapshot>;
   calendarOptions(householdId: string): Observable<readonly CalendarSeriesOption[]>;
 }
 

@@ -42,6 +42,7 @@ export class ShoppingListsComponent implements OnDestroy {
   protected readonly listForm = form(this.listModel, fields => { required(fields.name); maxLength(fields.name, 80); });
   protected readonly dialogMode = signal<'create' | 'settings'>('create');
   protected readonly editingItem = signal<ShoppingItem | null>(null);
+  protected readonly statusMessage = signal('');
   private readonly listDialog = viewChild<ElementRef<HTMLDialogElement>>('listDialog');
   private readonly itemDialog = viewChild<ElementRef<HTMLDialogElement>>('itemDialog');
   private readonly productInput = viewChild<ElementRef<HTMLInputElement>>('productInput');
@@ -78,6 +79,24 @@ export class ShoppingListsComponent implements OnDestroy {
   }
   protected async clearPurchased(): Promise<void> {
     if (await this.confirm('clearPurchased', 'shoppingLists.confirmClearPurchased')) void this.store.clearPurchased();
+  }
+  protected async reusePurchased(): Promise<void> {
+    const count = this.store.purchased().length;
+    if (!count) return;
+    const confirmed = await this.confirms.open({
+      title: this.translate.instant('shoppingListConfirmations.reusePurchased.title'),
+      message: this.translate.instant(count === 1
+        ? 'shoppingLists.confirmReusePurchasedOne'
+        : 'shoppingLists.confirmReusePurchasedMany', { count }),
+      confirmLabel: this.translate.instant('shoppingListConfirmations.reusePurchased.confirm'),
+      cancelLabel: this.translate.instant('common.cancel'),
+      variant: 'primary',
+    });
+    if (confirmed && await this.store.reusePurchased()) {
+      this.statusMessage.set(this.translate.instant(count === 1
+        ? 'shoppingLists.reuseSuccessOne'
+        : 'shoppingLists.reuseSuccessMany', { count }));
+    }
   }
   protected async trashList(): Promise<void> {
     const list = this.store.current();

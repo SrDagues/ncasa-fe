@@ -37,6 +37,20 @@ describe('ShoppingListsStore', () => {
     expect(store.pending().map(item => item.id)).toEqual(['i1', 'i2']);
   });
 
+  it('replaces both product sections with the authoritative reused detail', async () => {
+    const purchased = { ...addedItem, status: 'PURCHASED' as const, purchasedByMemberId: 'm1', purchasedAt: '2026-09-11T11:00:00Z' };
+    application.get.mockReturnValue(of({ kind: 'loaded', detail: { list, pending: [firstItem], purchased: [purchased] }, etag: '"detail"' }));
+    application.reusedDetail = { list: { ...list, contentRevision: 8 }, pending: [firstItem, addedItem], purchased: [] };
+    await store.initialize('h1');
+
+    await store.reusePurchased();
+
+    expect(application.reusePurchased).toHaveBeenCalledWith('h1', list);
+    expect(store.pending().map(item => item.id)).toEqual(['i1', 'i2']);
+    expect(store.purchased()).toEqual([]);
+    expect(store.current()?.contentRevision).toBe(8);
+  });
+
   it('keeps active-list state independent while loading the trash', async () => {
     await store.initialize('h1');
     application.trashed = [{ ...list, id: 'trashed', name: 'Old list', status: 'TRASHED' }];
@@ -97,11 +111,13 @@ describe('ShoppingListsStore', () => {
 class StubApplication {
   trashed: readonly ShoppingListSummary[] = [];
   addedList: ShoppingListSummary = { ...list, contentRevision: 8 };
+  reusedDetail: ShoppingListDetail = { ...detail };
   readonly list = vi.fn((_: string, trashed = false, __?: string): Observable<ShoppingListCollectionResult> =>
     of({ kind: 'loaded', lists: trashed ? this.trashed : [list], etag: trashed ? '"trash"' : '"active"' }));
   readonly get = vi.fn((_: string, __: string, ___?: string): Observable<ShoppingListDetailResult> => of({ kind: 'loaded', detail, etag: '"detail"' }));
   readonly calendarOptions = vi.fn(() => of([]));
   readonly addItem = vi.fn(() => of({ item: addedItem, list: this.addedList }));
+  readonly reusePurchased = vi.fn(() => of({ detail: this.reusedDetail, etag: '"reused"' }));
 }
 
 const list: ShoppingListSummary = {

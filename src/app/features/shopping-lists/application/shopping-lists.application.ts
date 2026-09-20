@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { CalendarSeriesOption, ShoppingItem, ShoppingItemDraft, ShoppingListSummary } from '../domain/shopping-list.models';
-import { AddedShoppingItem, ShoppingListCollectionResult, ShoppingListDetailResult, ShoppingListGateway } from './ports/shopping-list.gateway';
+import { AddedShoppingItem, ShoppingListCollectionResult, ShoppingListDetailResult, ShoppingListDetailSnapshot, ShoppingListGateway } from './ports/shopping-list.gateway';
 
 export class ShoppingListsApplication {
   constructor(private readonly gateway: ShoppingListGateway) {}
@@ -17,5 +17,6 @@ export class ShoppingListsApplication {
   setPurchased(householdId: string, listId: string, item: ShoppingItem, purchased: boolean): Observable<ShoppingItem> { return this.gateway.setPurchased(householdId, listId, item, purchased); }
   reorder(householdId: string, list: ShoppingListSummary, ids: readonly string[]): Observable<ShoppingListSummary> { return this.gateway.reorder(householdId, list, ids); }
   clearPurchased(householdId: string, list: ShoppingListSummary): Observable<number> { return this.gateway.clearPurchased(householdId, list); }
+  reusePurchased(householdId: string, list: ShoppingListSummary): Observable<ShoppingListDetailSnapshot> { return this.gateway.reusePurchased(householdId, list); }
   calendarOptions(householdId: string): Observable<readonly CalendarSeriesOption[]> { return this.gateway.calendarOptions(householdId); }
 }

@@ -269,6 +269,19 @@ export class ShoppingListsStore {
     });
   }
 
+  async reusePurchased(): Promise<boolean> {
+    const list = this.current();
+    if (!list || !this.purchased().length) return false;
+    return this.mutate('reuse', async (householdId, revision) => {
+      const result = await firstValueFrom(this.application.reusePurchased(householdId, list));
+      if (!this.isCurrent(householdId, revision) || this.current()?.id !== list.id) return;
+      this.detailValue.set(result.detail);
+      this.detailEtag = result.etag ?? undefined;
+      this.replaceList(result.detail.list);
+      this.activeCollectionEtag = undefined;
+    });
+  }
+
   async loadTrash(): Promise<void> {
     const householdId = this.householdId;
     if (!householdId) return;

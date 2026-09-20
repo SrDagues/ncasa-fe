@@ -58,6 +58,15 @@ describe('HttpShoppingListGateway', () => {
     expect(request.request.body).toMatchObject({ name: 'Leche', quantity: 2, unit: 'LITER', note: null });
     request.flush({ item, list: updatedList });
   });
+
+  it('reuses purchased products and returns the authoritative detail with its ETag', () => {
+    const reused = { list: { ...list, contentRevision: 8 }, pending: [item], purchased: [] };
+    gateway.reusePurchased('h1', list).subscribe(result => expect(result).toEqual({ detail: reused, etag: '"2-8"' }));
+    const request = http.expectOne('/api/households/h1/shopping-lists/l1/items/reuse-purchased');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ contentRevision: 7 });
+    request.flush(reused, { headers: { ETag: '"2-8"' } });
+  });
 });
 
 const list = { id: 'l1', name: 'Compra semanal', calendarSeriesId: null, status: 'ACTIVE', createdByMemberId: 'm1', createdAt: '2026-09-11T10:00:00Z', updatedAt: '2026-09-11T10:00:00Z', deletedAt: null, version: 2, contentRevision: 7 } as const;
