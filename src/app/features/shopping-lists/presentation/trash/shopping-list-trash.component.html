@@ -1,0 +1,8 @@
+<section class="space-y-5">
+  <header><a routerLink="../" class="text-sm font-semibold text-ncasa-forest underline">← {{ 'shoppingLists.back' | translate }}</a><h1 class="mt-3 text-3xl font-bold text-ncasa-forest">{{ 'shoppingLists.trash' | translate }}</h1><p class="mt-1 text-ncasa-muted">{{ 'shoppingLists.trashHint' | translate }}</p></header>
+  @if (store.error(); as error) { <div role="alert" class="rounded-xl border border-ncasa-coral/30 bg-red-50 p-4 text-ncasa-error">{{ ('shoppingLists.errors.' + error.kind) | translate }}</div> }
+  @if (store.trashState() === 'loading') { <p class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-8 text-center text-ncasa-muted">{{ 'shoppingLists.loading' | translate }}</p> }
+  @for (list of store.trash(); track list.id) {
+    <article class="flex flex-col gap-4 rounded-2xl border border-ncasa-border bg-ncasa-surface p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between"><div><h2 class="text-lg font-bold text-ncasa-forest">{{ list.name }}</h2><p class="text-sm text-ncasa-muted">{{ 'shoppingLists.trashedList' | translate }}</p></div><div class="flex flex-wrap gap-2"><button type="button" class="rounded-xl border border-ncasa-border px-4 py-2 font-semibold text-ncasa-forest" (click)="store.restore(list)">{{ 'shoppingLists.restore' | translate }}</button><button type="button" class="rounded-xl px-4 py-2 font-semibold text-ncasa-error" (click)="purge(list)">{{ 'shoppingLists.deleteForever' | translate }}</button></div></article>
+  } @empty { @if (store.trashState() !== 'loading') { <p class="rounded-2xl border border-dashed border-ncasa-sage bg-ncasa-surface p-10 text-center text-ncasa-muted">{{ 'shoppingLists.emptyTrash' | translate }}</p> } }
+</section>

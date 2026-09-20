@@ -205,6 +205,11 @@ When E2E support is introduced, keep the suite small and prioritize:
 6. create a calendar event;
 7. settle household balances;
 8. review a notification, mark it read and open its expense plan in the correct household.
+9. create a shopping list, add and reorder products, purchase, reuse purchased products for a new cycle, reopen and
+   clear products, then trash and restore the list.
+
+Shopping-list store tests also cover authoritative content revisions, independent trash state, the 15-second detail
+and 60-second collection polling cadence, and cancellation when the route is destroyed.
 
 Security authorization must also be tested on the backend; a frontend route guard is user experience,
 not enforcement.

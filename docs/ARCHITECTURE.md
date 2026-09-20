@@ -37,6 +37,7 @@ boundary is needed.
 | `expenses` | Expenses, categories, payer, participants, split rules, balances and settlements | OCR extraction |
 | `ticket-ingestion` | File selection, upload, OCR status, extracted fields and creation of an expense draft | Final expense persistence |
 | `calendar` | Events, tasks, dates, recurrence when introduced and calendar views | Expense settlement |
+| `shopping-lists` | Named lists, product lifecycle, ordering, trash and calendar-series association | Calendar recurrence and household membership lifecycle |
 | `notifications` | Persistent account inbox, unread state and navigation intents | Producing plan events or ephemeral UI toasts |
 | `dashboard` | Read-only composition/projection of data exposed by other contexts | New business rules duplicated from those contexts |
 
@@ -225,6 +226,16 @@ decoupling provides real value.
 
 `dashboard` should consume query/read-model interfaces exposed by expenses, household and calendar.
 It must not duplicate their calculations.
+
+`shopping-lists` collaborates with Household through its public active-member read model and with Calendar through
+the backend's purpose-built series link options. Its own application ports remain the boundary; presentation never
+imports either feature's internals. Calendar links use stable series IDs and shopping-list responsibility uses member
+IDs, while the backend remains authoritative for both references.
+
+The shopping-list store maintains separate active-list, selected-detail and trash representations. Conditional
+collection polling discovers lists created or removed by another session without coupling the selector to the
+15-second detail refresh. A household context revision prevents late responses from a previous household from
+overwriting current state.
 
 `ticket-ingestion` should produce an `ExpenseDraft` understood by the expenses application boundary.
 It should not save an expense by importing the concrete expenses repository.

@@ -1,0 +1,6 @@
+.field { @apply min-h-12 w-full rounded-xl border border-ncasa-border bg-white px-3 py-2 text-ncasa-charcoal outline-none transition focus:border-ncasa-forest focus:ring-2 focus:ring-ncasa-sage-soft; }
+.label { @apply mb-1 block text-sm font-semibold text-ncasa-charcoal; }
+.icon-action { @apply inline-flex h-10 min-w-10 items-center justify-center rounded-lg text-ncasa-muted hover:bg-ncasa-sage-soft hover:text-ncasa-forest disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest; }
+.menu-action { @apply block min-h-10 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-ncasa-sage-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest; }
+.cdk-drag-preview { @apply rounded-xl border border-ncasa-sage bg-ncasa-surface px-3 shadow-card; }
+.cdk-drag-placeholder { opacity: .25; }
