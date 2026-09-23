@@ -4,6 +4,12 @@
     <p class="auth-form__subtitle">{{ 'auth.login.subtitle' | translate }}</p>
   </header>
 
+  @if (emailVerified) {
+    <p class="form-message form-message--success" role="status" aria-live="polite">
+      {{ 'auth.verification.loginSuccess' | translate }}
+    </p>
+  }
+
   <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()" novalidate>
     @if (errorMessage()) {
       <p class="form-message form-message--error" role="alert" aria-live="assertive">{{ errorMessage()! | translate }}</p>

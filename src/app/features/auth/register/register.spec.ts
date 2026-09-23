@@ -7,22 +7,17 @@ import {
   NetworkUnavailableError,
 } from '../application/auth.errors';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
-import { AuthenticatedSession } from '../domain/auth.models';
+import { RegistrationResult } from '../domain/auth.models';
 import { Register } from './register';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import es from '../../../../../public/i18n/es.json';
 
 describe('Register page', () => {
-  const session: AuthenticatedSession = {
-    accessToken: 'access-token',
-    tokenType: 'Bearer',
-    expiresIn: 900,
-    user: { id: 1, email: 'user@example.com', roles: ['ROLE_USER'] },
-  };
+  const result: RegistrationResult = { status: 'PENDING_EMAIL_VERIFICATION' };
   let execute: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    execute = vi.fn(() => of(session));
+    execute = vi.fn(() => of(result));
     TestBed.configureTestingModule({
       imports: [Register],
       providers: [
@@ -62,10 +57,10 @@ describe('Register page', () => {
       .toContain('coinciden');
   });
 
-  it('should register only identity data and navigate to the dashboard', () => {
+  it('should register identity data and navigate to the check-email page', () => {
     const fixture = TestBed.createComponent(Register);
     const router = TestBed.inject(Router);
-    const navigate = vi.spyOn(router, 'navigateByUrl');
+    const navigate = vi.spyOn(router, 'navigate');
     fixture.detectChanges();
     completeForm(fixture.nativeElement);
 
@@ -75,7 +70,10 @@ describe('Register page', () => {
       email: 'user@example.com',
       password: 'password123',
     });
-    expect(navigate).toHaveBeenCalledWith('/app/dashboard');
+    expect(navigate).toHaveBeenCalledWith(['/check-email'], {
+      replaceUrl: true,
+      state: { email: 'user@example.com' },
+    });
   });
 
   it('should not reveal whether the email is already registered', () => {
@@ -107,7 +105,7 @@ describe('Register page', () => {
   });
 
   it('should prevent duplicate submissions while registration is pending', () => {
-    execute.mockReturnValue(new Subject<AuthenticatedSession>());
+    execute.mockReturnValue(new Subject<RegistrationResult>());
     const fixture = TestBed.createComponent(Register);
     fixture.detectChanges();
     completeForm(fixture.nativeElement);

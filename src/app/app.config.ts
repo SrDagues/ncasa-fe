@@ -13,6 +13,9 @@ import { firstValueFrom } from 'rxjs';
 import { RefreshSessionCoordinator } from './features/auth/application/use-cases/refresh-session.coordinator';
 import { LogoutUseCase } from './features/auth/application/use-cases/logout.use-case';
 import { RegisterUseCase } from './features/auth/application/use-cases/register.use-case';
+import { ConfirmEmailUseCase } from './features/auth/application/use-cases/confirm-email.use-case';
+import { PrepareVerificationLoginUseCase } from './features/auth/application/use-cases/prepare-verification-login.use-case';
+import { ResendEmailVerificationUseCase } from './features/auth/application/use-cases/resend-email-verification.use-case';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LanguageService } from './core/i18n/language.service';
@@ -45,10 +48,19 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: RegisterUseCase,
-      useFactory: () => new RegisterUseCase(
-        inject(HttpAuthRepository),
-        inject(AuthStore),
-      ),
+      useFactory: () => new RegisterUseCase(inject(HttpAuthRepository)),
+    },
+    {
+      provide: ConfirmEmailUseCase,
+      useFactory: () => new ConfirmEmailUseCase(inject(HttpAuthRepository)),
+    },
+    {
+      provide: PrepareVerificationLoginUseCase,
+      useFactory: () => new PrepareVerificationLoginUseCase(inject(HttpAuthRepository), inject(AuthStore)),
+    },
+    {
+      provide: ResendEmailVerificationUseCase,
+      useFactory: () => new ResendEmailVerificationUseCase(inject(HttpAuthRepository)),
     },
     {
       provide: RestoreSessionUseCase,

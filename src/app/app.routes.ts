@@ -65,19 +65,36 @@ export const routes: Routes = [
   {
     path: '',
     component: AuthLayout,
-    canActivate: [guestGuard],
     children: [
       {
         path: 'login',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/auth/login/login').then((component) => component.Login),
         data: { titleKey: 'metadata.login' },
       },
       {
         path: 'register',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/auth/register/register').then((component) => component.Register),
         data: { titleKey: 'metadata.register' },
+      },
+      {
+        path: 'check-email',
+        loadComponent: () =>
+          import('./features/auth/check-email/check-email').then(
+            (component) => component.CheckEmail,
+          ),
+        data: { titleKey: 'metadata.checkEmail' },
+      },
+      {
+        path: 'verify-email',
+        loadComponent: () =>
+          import('./features/auth/verify-email/verify-email').then(
+            (component) => component.VerifyEmail,
+          ),
+        data: { titleKey: 'metadata.verifyEmail' },
       },
       { path: '', pathMatch: 'full', redirectTo: 'login' },
     ],

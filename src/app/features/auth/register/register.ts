@@ -43,7 +43,10 @@ export class Register {
     this.register.execute({ email, password }).pipe(
       finalize(() => this.pending.set(false)),
     ).subscribe({
-      next: () => void this.router.navigateByUrl('/app/dashboard'),
+      next: () => void this.router.navigate(['/check-email'], {
+        replaceUrl: true,
+        state: { email },
+      }),
       error: (error: unknown) => this.errorMessage.set(registrationErrorKey(error)),
     });
   }
