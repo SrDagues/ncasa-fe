@@ -2,7 +2,12 @@ import { Observable, of, throwError } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { AuthRepository } from '../ports/auth.repository';
 import { AuthSessionState } from '../ports/auth-session-state';
-import { AuthenticatedSession, LoginCredentials, User } from '../../domain/auth.models';
+import {
+  AuthenticatedSession,
+  LoginCredentials,
+  RegistrationResult,
+  User,
+} from '../../domain/auth.models';
 import { LoginUseCase } from './login.use-case';
 
 describe('LoginUseCase', () => {
@@ -62,7 +67,9 @@ class FakeAuthRepository implements AuthRepository {
     return this.loginResult;
   }
 
-  register(): Observable<AuthenticatedSession> { return throwError(() => new Error('unused')); }
+  register(): Observable<RegistrationResult> { return throwError(() => new Error('unused')); }
+  confirmEmail(): Observable<void> { return throwError(() => new Error('unused')); }
+  resendEmailVerification(): Observable<void> { return throwError(() => new Error('unused')); }
   refresh(): Observable<AuthenticatedSession> { return throwError(() => new Error('unused')); }
   logout(): Observable<void> { return throwError(() => new Error('unused')); }
   me(): Observable<User> { return throwError(() => new Error('unused')); }

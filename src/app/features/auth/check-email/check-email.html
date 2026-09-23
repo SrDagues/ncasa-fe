@@ -1,0 +1,59 @@
+<section class="auth-form verification-card" aria-labelledby="check-email-title">
+  <header class="auth-form__header">
+    <span class="verification-card__icon" aria-hidden="true">✉</span>
+    <h1 id="check-email-title" class="auth-form__title">
+      {{ 'auth.verification.checkTitle' | translate }}
+    </h1>
+    <p class="auth-form__subtitle">
+      {{ 'auth.verification.checkSubtitle' | translate }}
+      @if (registeredEmail) {
+        <strong class="verification-card__email">{{ registeredEmail }}</strong>
+      }
+    </p>
+  </header>
+
+  <ol class="verification-steps">
+    <li>{{ 'auth.verification.stepOpen' | translate }}</li>
+    <li>{{ 'auth.verification.stepConfirm' | translate }}</li>
+    <li>{{ 'auth.verification.stepLogin' | translate }}</li>
+  </ol>
+
+  <p class="verification-card__hint">{{ 'auth.verification.spamHint' | translate }}</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()" novalidate>
+    <div class="form-field">
+      <label for="verification-email">{{ 'common.email' | translate }}</label>
+      <div class="input-shell">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        <input id="verification-email" type="email" inputmode="email" autocomplete="email"
+          formControlName="email" [placeholder]="'auth.login.emailPlaceholder' | translate"
+          [attr.aria-invalid]="submitted() && form.controls.email.invalid"
+          [attr.aria-describedby]="submitted() && form.controls.email.invalid ? 'verification-email-error' : null">
+      </div>
+      @if (submitted() && form.controls.email.invalid) {
+        <p id="verification-email-error" class="field-message field-message--error">
+          {{ 'auth.login.invalidEmail' | translate }}
+        </p>
+      }
+    </div>
+
+    @if (sent()) {
+      <p class="form-message form-message--success" role="status" aria-live="polite">
+        {{ 'auth.verification.resendAccepted' | translate }}
+      </p>
+    }
+    @if (errorMessage()) {
+      <p class="form-message form-message--error" role="alert" aria-live="assertive">
+        {{ errorMessage()! | translate: { seconds: retryAfterSeconds() } }}
+      </p>
+    }
+
+    <button class="primary-button" type="submit" [disabled]="pending()">
+      {{ (pending() ? 'auth.verification.resending' : 'auth.verification.resend') | translate }}
+    </button>
+  </form>
+
+  <p class="auth-form__footer">
+    <a routerLink="/login" class="text-link">{{ 'auth.verification.goToLogin' | translate }}</a>
+  </p>
+</section>

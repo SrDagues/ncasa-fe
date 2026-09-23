@@ -8,6 +8,11 @@ import {
   EmailAlreadyRegisteredError,
   NetworkUnavailableError,
   SessionExpiredError,
+  EmailAlreadyVerifiedError,
+  EmailVerificationRequiredError,
+  ExpiredEmailVerificationTokenError,
+  InvalidEmailVerificationTokenError,
+  VerificationRateLimitedError,
 } from '../../application/auth.errors';
 
 describe('HttpAuthRepository login', () => {
@@ -53,11 +58,11 @@ describe('HttpAuthRepository login', () => {
     expect(session).not.toHaveProperty('refreshToken');
   });
 
-  it('should register an account through the web API and receive a session', () => {
-    let session: unknown;
+  it('should register an account through the web API and receive a pending result', () => {
+    let result: unknown;
 
     repository.register({ email: 'user@example.com', password: 'password123' })
-      .subscribe((result) => session = result);
+      .subscribe((value) => result = value);
 
     const request = http.expectOne('/api/auth/register');
     expect(request.request.method).toBe('POST');
@@ -65,16 +70,11 @@ describe('HttpAuthRepository login', () => {
       email: 'user@example.com',
       password: 'password123',
     });
-    expect(request.request.withCredentials).toBe(true);
-    request.flush({
-      accessToken: 'access-token',
-      tokenType: 'Bearer',
-      expiresIn: 900,
-      user: { id: 1, email: 'user@example.com', roles: ['ROLE_USER'] },
-    }, { status: 201, statusText: 'Created' });
+    expect(request.request.withCredentials).toBe(false);
+    request.flush({ status: 'PENDING_EMAIL_VERIFICATION' },
+      { status: 201, statusText: 'Created' });
 
-    expect(session).toMatchObject({ accessToken: 'access-token' });
-    expect(session).not.toHaveProperty('refreshToken');
+    expect(result).toEqual({ status: 'PENDING_EMAIL_VERIFICATION' });
   });
 
   it('should translate a duplicate email into an application error', () => {
@@ -128,6 +128,70 @@ describe('HttpAuthRepository login', () => {
     http.expectOne('/api/auth/login').flush(null, { status: 401, statusText: 'Unauthorized' });
 
     expect(failure).toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it('should translate a pending email login into a verification-required error', () => {
+    let failure: unknown;
+    repository.login({ email: 'user@example.com', password: 'password123' })
+      .subscribe({ error: (error: unknown) => failure = error });
+
+    http.expectOne('/api/auth/login').flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(failure).toBeInstanceOf(EmailVerificationRequiredError);
+  });
+
+  it('should confirm email through the public endpoint', () => {
+    let completed = false;
+    repository.confirmEmail('raw-token').subscribe({ complete: () => completed = true });
+
+    const request = http.expectOne('/api/auth/email-verification');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ token: 'raw-token' });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(completed).toBe(true);
+  });
+
+  it.each([
+    [400, InvalidEmailVerificationTokenError],
+    [409, EmailAlreadyVerifiedError],
+    [410, ExpiredEmailVerificationTokenError],
+  ] as const)('should translate confirmation status %s', (status, ExpectedError) => {
+    let failure: unknown;
+    repository.confirmEmail('raw-token').subscribe({ error: (error: unknown) => failure = error });
+
+    http.expectOne('/api/auth/email-verification')
+      .flush(null, { status, statusText: 'Verification rejected' });
+
+    expect(failure).toBeInstanceOf(ExpectedError);
+  });
+
+  it('should request a neutral verification resend', () => {
+    let completed = false;
+    repository.resendEmailVerification('user@example.com')
+      .subscribe({ complete: () => completed = true });
+
+    const request = http.expectOne('/api/auth/email-verification/resend');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ email: 'user@example.com' });
+    request.flush(null, { status: 202, statusText: 'Accepted' });
+
+    expect(completed).toBe(true);
+  });
+
+  it('should retain Retry-After when a verification endpoint is rate limited', () => {
+    let failure: unknown;
+    repository.resendEmailVerification('user@example.com')
+      .subscribe({ error: (error: unknown) => failure = error });
+
+    http.expectOne('/api/auth/email-verification/resend').flush(null, {
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: { 'Retry-After': '37' },
+    });
+
+    expect(failure).toBeInstanceOf(VerificationRateLimitedError);
+    expect((failure as VerificationRateLimitedError).retryAfterSeconds).toBe(37);
   });
 
   it('should translate a refresh rejection into an expired session', () => {

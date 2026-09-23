@@ -5,7 +5,11 @@ import { describe, beforeEach, expect, it, vi } from 'vitest';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { AuthenticatedSession } from '../domain/auth.models';
 import { Login } from './login';
-import { InvalidCredentialsError } from '../application/auth.errors';
+import {
+  EmailVerificationRequiredError,
+  InvalidCredentialsError,
+} from '../application/auth.errors';
+import { Location } from '@angular/common';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import es from '../../../../../public/i18n/es.json';
 
@@ -86,6 +90,33 @@ describe('Login page', () => {
     const alert = fixture.nativeElement.querySelector('[role="alert"]');
     expect(alert?.textContent).toContain('correo o la contraseña');
     expect(alert?.classList).toContain('form-message--error');
+  });
+
+  it('should redirect pending accounts to the check-email guidance', () => {
+    execute.mockReturnValue(throwError(() => new EmailVerificationRequiredError()));
+    const fixture = TestBed.createComponent(Login);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate');
+    fixture.detectChanges();
+    fill(fixture.nativeElement, '#login-email', 'pending@example.com');
+    fill(fixture.nativeElement, '#login-password', 'password123');
+
+    submit(fixture.nativeElement);
+
+    expect(navigate).toHaveBeenCalledWith(['/check-email'], {
+      replaceUrl: true,
+      state: { email: 'pending@example.com' },
+    });
+  });
+
+  it('should announce a successful email verification', () => {
+    TestBed.inject(Location).replaceState('/login', '', { emailVerified: true });
+    const fixture = TestBed.createComponent(Login);
+
+    fixture.detectChanges();
+
+    const status = fixture.nativeElement.querySelector('[role="status"]');
+    expect(status?.textContent).toContain('Correo confirmado');
   });
 
   it('should prevent duplicate submissions while login is pending', () => {

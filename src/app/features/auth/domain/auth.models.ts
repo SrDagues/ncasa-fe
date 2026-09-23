@@ -14,6 +14,10 @@ export interface RegistrationData {
   readonly password: string;
 }
 
+export interface RegistrationResult {
+  readonly status: 'PENDING_EMAIL_VERIFICATION';
+}
+
 export interface AuthenticatedSession {
   readonly accessToken: string;
   readonly tokenType: 'Bearer';

@@ -120,6 +120,12 @@ a { color: inherit; }
   background: var(--ncasa-danger-soft);
   color: var(--ncasa-danger);
 }
+.form-message--success {
+  border-color: color-mix(in srgb, var(--ncasa-forest) 30%, transparent);
+  background: var(--ncasa-sage-soft);
+  color: var(--ncasa-forest);
+}
+.auth-form > .form-message { margin-bottom: 1.2rem; }
 .form-options { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .checkbox {
   display: inline-flex;
@@ -154,6 +160,40 @@ a { color: inherit; }
 .primary-button:hover:not(:disabled) { border-color: var(--ncasa-coral-dark); background: var(--ncasa-coral-dark); }
 .primary-button:active:not(:disabled) { transform: translateY(1px); }
 .primary-button:disabled { cursor: not-allowed; opacity: 0.5; }
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--ncasa-forest);
+  border-radius: 0.75rem;
+  color: var(--ncasa-forest);
+  font-weight: 650;
+  text-decoration: none;
+}
+.secondary-button:hover { background: var(--ncasa-sage-soft); }
+.verification-card__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+  background: var(--ncasa-sage-soft);
+  color: var(--ncasa-forest);
+  font-size: 1.4rem;
+  font-weight: 700;
+  place-items: center;
+}
+.verification-card__icon--pending { animation: verification-pulse 1.2s ease-in-out infinite; }
+.verification-card__icon--error { background: var(--ncasa-danger-soft); color: var(--ncasa-danger); }
+.verification-card__email { display: block; margin-top: 0.35rem; color: var(--ncasa-forest); overflow-wrap: anywhere; }
+.verification-card__hint { margin: 1rem 0 1.5rem; color: var(--ncasa-muted); font-size: 0.875rem; line-height: 1.5; }
+.verification-steps { margin: 0; padding-left: 1.4rem; color: var(--ncasa-charcoal); line-height: 1.6; }
+.verification-steps li + li { margin-top: 0.45rem; }
+.verification-actions { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1.25rem; text-align: center; }
+@keyframes verification-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .verification-card__icon--pending { animation: none; } }
 .auth-form__footer {
   margin: 2rem 0 0;
   color: color-mix(in srgb, var(--ncasa-charcoal) 62%, transparent);

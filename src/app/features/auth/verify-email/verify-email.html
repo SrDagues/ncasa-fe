@@ -1,0 +1,33 @@
+<section class="auth-form verification-card" aria-labelledby="verify-email-title">
+  @if (state() === 'verifying') {
+    <div role="status" aria-live="polite">
+      <span class="verification-card__icon verification-card__icon--pending" aria-hidden="true">…</span>
+      <h1 id="verify-email-title" class="auth-form__title">
+        {{ 'auth.verification.verifyingTitle' | translate }}
+      </h1>
+      <p class="auth-form__subtitle">{{ 'auth.verification.verifyingDescription' | translate }}</p>
+    </div>
+  } @else {
+    <span class="verification-card__icon verification-card__icon--error" aria-hidden="true">!</span>
+    <h1 id="verify-email-title" class="auth-form__title">
+      {{ 'auth.verification.problemTitle' | translate }}
+    </h1>
+    <p class="form-message form-message--error" role="alert" aria-live="assertive">
+      {{ errorKey() | translate: { seconds: retryAfterSeconds() } }}
+    </p>
+
+    <div class="verification-actions">
+      @if (canRetry()) {
+        <button type="button" class="primary-button" (click)="retry()">
+          {{ 'common.retry' | translate }}
+        </button>
+      }
+      @if (state() !== 'session-error') {
+      <a routerLink="/check-email" class="secondary-button">
+        {{ 'auth.verification.requestAnother' | translate }}
+      </a>
+      <a routerLink="/login" class="text-link">{{ 'auth.verification.goToLogin' | translate }}</a>
+      }
+    </div>
+  }
+</section>
