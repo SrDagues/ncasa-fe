@@ -6,6 +6,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HouseholdStore } from '../../../household';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ShoppingItem, ShoppingItemDraft, ShoppingUnit, validateShoppingItemDraft } from '../../domain/shopping-list.models';
 import { ShoppingListsStore } from '../shopping-lists.store';
@@ -17,7 +18,7 @@ const EMPTY_ITEM: ItemFormModel = { name: '', quantity: null, note: '', unit: ''
 
 @Component({
   selector: 'app-shopping-lists',
-  imports: [AvatarComponent, DragDropModule, FormField, RouterLink, TranslatePipe, IconComponent],
+  imports: [AvatarComponent, DragDropModule, EmptyStateComponent, FormField, RouterLink, TranslatePipe, IconComponent],
   templateUrl: './shopping-lists.component.html',
   styleUrl: './shopping-lists.component.css',
 })
