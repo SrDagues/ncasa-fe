@@ -18,6 +18,7 @@ const purchased = { id: 'i1', listId: 'l1', name: 'Leche', quantity: 2, unit: 'L
   status: 'PURCHASED' as const, position: 0, createdAt: '', updatedAt: '', purchasedAt: '2026-09-11T10:00:00Z', version: 1 };
 
 describe('ShoppingListsComponent reuse flow', () => {
+  const activeHousehold = signal<typeof household | null>(household);
   const reusePurchased = vi.fn(async () => true);
   const open = vi.fn(async () => true);
   const store = {
@@ -31,9 +32,10 @@ describe('ShoppingListsComponent reuse flow', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    activeHousehold.set(household);
     TestBed.configureTestingModule({ imports: [ShoppingListsComponent], providers: [
       provideRouter([]), provideTranslateService({ fallbackLang: 'es', lang: 'es' }),
-      { provide: HouseholdStore, useValue: { active: signal(household), members: signal([]) } },
+      { provide: HouseholdStore, useValue: { active: activeHousehold, members: signal([]) } },
       { provide: ShoppingListsStore, useValue: store },
       { provide: ConfirmDialogService, useValue: { open } },
     ] });
@@ -51,6 +53,19 @@ describe('ShoppingListsComponent reuse flow', () => {
       title: 'Preparar nueva compra', message: expect.stringContaining('1 producto'), variant: 'primary',
     }));
     expect(reusePurchased).toHaveBeenCalledOnce();
+  });
+
+  it('guides the user to create a household before creating a list', () => {
+    activeHousehold.set(null);
+    const fixture = TestBed.createComponent(ShoppingListsComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const createHouseholdLink = [...root.querySelectorAll<HTMLAnchorElement>('a')]
+      .find(link => link.textContent?.includes('Crear mi hogar'));
+
+    expect(root.textContent).toContain('Primero necesitas un hogar');
+    expect([...root.querySelectorAll('button')].some(button => button.textContent?.includes('Nueva lista'))).toBe(false);
+    expect(createHouseholdLink?.getAttribute('href')).toBe('/app/household');
   });
 });
 

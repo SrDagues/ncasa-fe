@@ -10,7 +10,9 @@
   @if (store.state() === 'loading') {
     <div class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-8 text-center text-ncasa-muted">{{ 'shoppingLists.loading' | translate }}</div>
   } @else if (!household.active()) {
-    <div class="rounded-2xl border border-ncasa-border bg-ncasa-surface p-8 text-center text-ncasa-muted">{{ 'shoppingLists.noHousehold' | translate }}</div>
+    <app-empty-state icon="home" [title]="'shoppingListsNoHouseholdTitle' | translate" [description]="'shoppingLists.noHousehold' | translate">
+      <a routerLink="/app/household" class="inline-flex min-h-11 items-center rounded-xl bg-ncasa-coral px-5 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ncasa-forest focus-visible:ring-offset-2">{{ 'shoppingListsCreateHousehold' | translate }}</a>
+    </app-empty-state>
   } @else {
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>

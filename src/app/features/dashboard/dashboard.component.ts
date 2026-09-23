@@ -4,8 +4,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { LocalizedCurrencyPipe, LocalizedDatePipe } from '../../core/i18n/localized-format.pipe';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
-import { ButtonComponent } from '../../shared/components/button/button.component';
 import { CardComponent } from '../../shared/components/card/card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { AuthStore } from '../auth';
@@ -14,7 +14,7 @@ import { DashboardFinancialSnapshot, DashboardUpcomingExpense, GetDashboardFinan
 import { HouseholdStore } from '../household';
 
 @Component({ selector: 'app-dashboard', standalone: true,
-  imports: [RouterLink, TranslatePipe, LocalizedCurrencyPipe, LocalizedDatePipe, AvatarComponent, ButtonComponent, CardComponent, IconComponent, StatCardComponent],
+  imports: [RouterLink, TranslatePipe, LocalizedCurrencyPipe, LocalizedDatePipe, AvatarComponent, CardComponent, EmptyStateComponent, IconComponent, StatCardComponent],
   templateUrl: './dashboard.component.html' })
 export class DashboardComponent {
   private readonly household = inject(HouseholdStore);
@@ -24,6 +24,7 @@ export class DashboardComponent {
   private readonly getUpcomingExpense = inject(GetDashboardUpcomingExpenseUseCase);
   private readonly listCalendar = inject(ListCalendarOccurrencesUseCase);
   readonly members = this.household.members;
+  readonly householdState = this.household.state;
   readonly householdName = computed(() => this.household.active()?.name ?? '—');
   readonly currentUserEmail = computed(() => this.auth.currentUser()?.email ?? '');
   readonly recentExpenses = signal<readonly RecentExpenseSummary[]>([]);
